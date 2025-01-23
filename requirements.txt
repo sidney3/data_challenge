@@ -1,7 +1,0 @@
-IPython
-collections
-json
-threading
-time
-urllib
-websocket
