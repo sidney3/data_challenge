@@ -23,7 +23,13 @@ async def start_strategy():
 
     await client.subscribe()
 
-    while True:
+    for _ in range(10):
+        await asyncio.sleep(1)
+
+    await client.unsubscribe()
+    await client.subscribe()
+
+    for _ in range(10):
         await asyncio.sleep(1)
 
 
