@@ -1,3 +1,7 @@
-IPython
+pre-commit
+
 ipykernel
-websocket-client
+ipython
+
+uvloop
+websockets

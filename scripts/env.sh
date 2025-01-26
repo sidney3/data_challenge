@@ -62,3 +62,5 @@ elif [ "$1" = "venv" ]; then
 else
     echo "the selected environment tool is not supported: $1."
 fi
+
+cp scripts/.pre-commit-config-template.yaml .pre-commit-config.yaml
