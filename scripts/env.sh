@@ -43,7 +43,6 @@ if [ "$1" = "pyenv" ]; then
     pip install -U pip pip-tools
     pip-compile scripts/requirements.in
     pip-sync scripts/requirements.txt
-    rm scripts/requirements.txt
 elif [ "$1" = "venv" ]; then
     VENV_NAME="$REPO_NAME"
 
@@ -58,7 +57,6 @@ elif [ "$1" = "venv" ]; then
     pip install -U pip pip-tools
     pip-compile scripts/requirements.in
     pip-sync scripts/requirements.txt
-    rm scripts/requirements.txt
 else
     echo "the selected environment tool is not supported: $1."
 fi
