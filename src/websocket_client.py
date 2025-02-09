@@ -27,11 +27,27 @@ class WebSocketClient:
             f"CONNECT\n"
             f"accept-version:1.1,1.0\n"
             f"host:localhost\n"
+            "\n\x00"
         )
         await ws.send(connect_frame)
 
         # Subscribe to orderbook topic
-        
+        subscribe_frame = (
+            "SUBSCRIBE\n"
+            "id:sub-0\n"
+            "destination:/topic/orderbook\n"
+            "\n\x00"
+        )
+        await ws.send(subscribe_frame)
+
+        # Subscribe to private user queue
+        user_subscribe_frame = (
+            f"SUBSCRIBE\n"
+            f"id:sub-1\n"
+            f"destination:/user/queue/private\n"
+            "\n\x00"
+        )
+        await ws.send(user_subscribe_frame)
         self._subscribed.set()
         print("STOMP connection and subscription established")
 
@@ -39,7 +55,6 @@ class WebSocketClient:
         self, ws: websockets.ClientConnection, message: websockets.Data
     ):
         try:
-            print(message)
             if isinstance(message, bytes):
                 message = message.decode("utf-8")
 
@@ -60,17 +75,14 @@ class WebSocketClient:
                         content = json.loads(json_body["content"])
                         if isinstance(content, list):
                             self._orderbook.update_volumes(content)
-                        print("OrderBook Updated:", self._orderbook)
 
                 elif destination == "/user/queue/private":
                     if json_body:  # Ensure valid JSON
                         self._portfolio.update_portfolio(json_body)
-                        print("User portfolio updated successfully.")
 
                 
                     if "balance" in json_body or "Orders" in json_body:
                         self._portfolio.update_portfolio(json_body)
-                        print("User portfolio updated successfully.")
         except Exception as e:
             print(f"Error processing message: {e}")
             traceback.print_exc()
