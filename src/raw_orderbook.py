@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from sortedcontainers import SortedDict
 
 
 class OrderBook:
@@ -10,9 +10,9 @@ class OrderBook:
         if not isinstance(raw_order_book, dict):
             raise TypeError("Input data must be a dictionary.")
 
-        self._orderbooks = {}
+        self._filtered_orderbooks: dict[str, dict[str, SortedDict[float, float]]] = {}
         for ticker, volumes in raw_order_book.items():
-            self._orderbooks[ticker] = {
+            self._filtered_orderbooks[ticker] = {
                 "bids": self._create_sorted_dict(
                     volumes.get("bids", {}), reverse=True
                 ),
@@ -23,17 +23,15 @@ class OrderBook:
 
     @property
     def orderbooks(self) -> dict:
-        return self._orderbooks
+        return self._filtered_orderbooks
 
     def _create_sorted_dict(
         self, volumes: dict, reverse: bool
-    ) -> OrderedDict[float, float]:
-        return OrderedDict(
-            sorted(
-                ((float(price), float(qty)) for price, qty in volumes.items()),
-                key=lambda x: x[0],
-                reverse=reverse,
-            )
+    ) -> SortedDict[float, float]:
+        return SortedDict(
+            [
+                (float(price), float(qty)) for price, qty in volumes.items()
+            ]
         )
 
     def update_volumes(self, updates: list) -> None:
@@ -57,37 +55,37 @@ class OrderBook:
             side = update["side"].upper()
             volume = float(update["volume"])
 
-            if ticker not in self._orderbooks:
-                self._orderbooks[ticker] = {
-                    "bids": OrderedDict(),
-                    "asks": OrderedDict(),
+            if ticker not in self._filtered_orderbooks:
+                self._filtered_orderbooks[ticker] = {
+                    "bids": SortedDict(),
+                    "asks": SortedDict(),
                 }
 
             if side == "BID":
                 if volume == 0.0:
-                    self._orderbooks[ticker]["bids"].pop(price, None)
+                    self._filtered_orderbooks[ticker]["bids"].pop(price, None)
                 else:
-                    self._orderbooks[ticker]["bids"][price] = volume
-                    self._orderbooks[ticker]["bids"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["bids"], reverse=True
+                    self._filtered_orderbooks[ticker]["bids"][price] = volume
+                    self._filtered_orderbooks[ticker]["bids"] = self._create_sorted_dict(
+                        self._filtered_orderbooks[ticker]["bids"], reverse=True
                     )
             elif side == "ASK":
                 if volume == 0.0:
-                    self._orderbooks[ticker]["asks"].pop(price, None)
+                    self._filtered_orderbooks[ticker]["asks"].pop(price, None)
                 else:
-                    self._orderbooks[ticker]["asks"][price] = volume
-                    self._orderbooks[ticker]["asks"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["asks"], reverse=False
+                    self._filtered_orderbooks[ticker]["asks"][price] = volume
+                    self._filtered_orderbooks[ticker]["asks"] = self._create_sorted_dict(
+                        self._filtered_orderbooks[ticker]["asks"], reverse=False
                     )
             else:
                 raise ValueError("Side must be 'BID' or 'ASK'.")
 
     def __repr__(self):
-        return f"OrderBook({self._orderbooks})"
+        return f"OrderBook({self._filtered_orderbooks})"
 
     def __str__(self):
         output = []
-        for ticker, data in self._orderbooks.items():
+        for ticker, data in self._filtered_orderbooks.items():
             output.append(f"Ticker: {ticker}")
             output.append("  Bid Volumes:")
             for price, volume in data["bids"].items():

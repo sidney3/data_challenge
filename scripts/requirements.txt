@@ -78,6 +78,8 @@ pyzmq==26.2.0
     #   jupyter-client
 six==1.17.0
     # via python-dateutil
+sortedcontainers==2.4.0
+    # via -r scripts/requirements.in
 stack-data==0.6.3
     # via ipython
 tornado==6.4.2

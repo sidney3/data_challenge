@@ -3,5 +3,6 @@ pre-commit
 ipykernel
 ipython
 
+sortedcontainers
 uvloop
 websockets
