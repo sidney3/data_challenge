@@ -4,6 +4,7 @@ import json
 import urllib.request
 
 from src.raw_orderbook import OrderBook
+from src.filtered_orderbook import FilteredOrderBook
 from src.websocket_client import WebSocketClient
 from src.user_portfolio import UserPortfolio
 
@@ -29,7 +30,7 @@ class TradingClient:
         req.add_header("Content-Type", "application/json")
         response = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
         self._session_token = response.get("sessionToken")
-        self._orderbook = OrderBook(json.loads(response["orderBookData"]))
+        self._orderbook = FilteredOrderBook(raw_order_book=json.loads(response["orderBookData"]))
         self._user_portfolio = UserPortfolio()
         self._client = WebSocketClient(
             endpoint=self._ws_endpoint, 
@@ -61,7 +62,6 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
-        print(content)
 
     def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
         """Place a Market Order on the exchange."""
@@ -82,7 +82,6 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
-        print(content)
 
     def remove_all(
         self,
@@ -98,7 +97,6 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         response = urllib.request.urlopen(req).read().decode("utf-8")
-        print("Remove all response:", response)
         return json.loads(response)
 
     def get_details(self):
@@ -113,7 +111,6 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         response = urllib.request.urlopen(req).read().decode("utf-8")
-        print("Get details response:", response)
         return json.loads(response)
 
     async def subscribe(self):

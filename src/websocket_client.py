@@ -74,7 +74,7 @@ class WebSocketClient:
                     if "content" in json_body:
                         content = json.loads(json_body["content"])
                         if isinstance(content, list):
-                            self._orderbook.update_volumes(content)
+                            self._orderbook.update_volumes(updates=content, orders=self._portfolio.orders)
 
                 elif destination == "/user/queue/private":
                     if json_body:  # Ensure valid JSON

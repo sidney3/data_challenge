@@ -9,6 +9,6 @@ class OrderSide(str, Enum):
 class Order:
     ticker: str
     price: float
-    qty: float
+    volume: float
     side: OrderSide
     id: int

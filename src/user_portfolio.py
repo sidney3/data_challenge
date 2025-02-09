@@ -7,7 +7,7 @@ class UserPortfolio:
             "pnl": 0,
             "positions": {},
             "username": None,
-            "Orders": {}
+            "orders": {}
         }
 
     # Replace the entire portfolio data with a new message
@@ -16,22 +16,20 @@ class UserPortfolio:
             print("Invalid message format:", message)
             return
 
-        print(message)
-
         # Reset the portfolio and set it to the new message
         self.data = {
             "balance": message.get("balance", 0),
             "pnl": message.get("pnl", 0),
             "positions": message.get("positions", {}),  # Replaces completely
             "username": message.get("username"),
-            "Orders": {}
+            "orders": {}
         }
 
         # Process orders if provided
         orders = message.get("Orders")
         if isinstance(orders, dict):
             for ticker, order_list_per_ticker in orders.items():
-                self.data["Orders"][ticker] = []
+                self.data["orders"][ticker] = []
                 for order in order_list_per_ticker:
                     order_with_ticker = Order(
                         ticker=ticker,
@@ -40,11 +38,18 @@ class UserPortfolio:
                         side=order["side"],
                         id=order["orderId"],
                     )
-                    self.data["Orders"][ticker].append(order_with_ticker)
+                    self.data["orders"][ticker].append(order_with_ticker)
 
-    # Get portfolio snapshot
     def get_portfolio(self):
         return self.data.copy()
+
+    @property
+    def positions(self):
+        return self.data["positions"]
+
+    @property
+    def orders(self):
+        return self.data["orders"]
 
 
 # Example

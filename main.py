@@ -23,7 +23,9 @@ async def start_strategy():
 
     await client.subscribe()
 
-    await asyncio.sleep(10)
+    for i in range(10):
+        client.place_limit(ticker="A", volume=1, price=100+i, is_bid=True)
+        await asyncio.sleep(1)
 
     await client.unsubscribe()
     await client.subscribe()
