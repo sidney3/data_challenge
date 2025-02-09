@@ -7,29 +7,31 @@ import traceback
 
 import websockets
 
-from src.orderbook import OrderBook
-
+from src.raw_orderbook import OrderBook
+from src.user_portfolio import UserPortfolio
 
 class WebSocketClient:
-    def __init__(self, endpoint: str, orderbook: OrderBook, portfolio: UserPorfolio):
-        self._endpoint = endpoint
+    def __init__(self, endpoint: str, orderbook: OrderBook, session_token: str, portfolio: UserPortfolio, username: str):
+        self._endpoint = f"{endpoint}?Session-ID={session_token}&Username={username}"
         self._subscribed: asyncio.Event | None = None
         self._ws = None
         self._orderbook = orderbook
+        self._session_token = session_token
         self._portfolio = portfolio
+        self._username = username
 
     async def _on_open(self, ws: websockets.ClientConnection):
         print("WebSocket connection established")
         # Send STOMP CONNECT frame
-        connect_frame = "CONNECT\naccept-version:1.1,1.0\nhost:localhost\n\n\x00"
+        connect_frame = (
+            f"CONNECT\n"
+            f"accept-version:1.1,1.0\n"
+            f"host:localhost\n"
+        )
         await ws.send(connect_frame)
 
         # Subscribe to orderbook topic
-        subscribe_frame = (
-            "SUBSCRIBE\nid:sub-0\ndestination:/topic/orderbook\nack:auto\n\n\x00"
-        )
-        await ws.send(subscribe_frame)
-
+        
         self._subscribed.set()
         print("STOMP connection and subscription established")
 
@@ -37,6 +39,7 @@ class WebSocketClient:
         self, ws: websockets.ClientConnection, message: websockets.Data
     ):
         try:
+            print(message)
             if isinstance(message, bytes):
                 message = message.decode("utf-8")
 
@@ -45,12 +48,29 @@ class WebSocketClient:
                 body = body.replace("\x00", "").strip()
                 json_body = json.loads(body)
 
-                if "content" in json_body:
-                    content = json.loads(json_body["content"])
-                    if isinstance(content, list):
-                        self._orderbook.update_volumes(content)
-                    print("Timestamp:", time.time())
-                    print(self._orderbook)
+
+                destination = None
+                for line in headers.split("\n"):
+                    if line.startswith("destination:"):
+                        destination = line.split(":", 1)[1].strip()
+                        break
+
+                if destination == "/topic/orderbook":
+                    if "content" in json_body:
+                        content = json.loads(json_body["content"])
+                        if isinstance(content, list):
+                            self._orderbook.update_volumes(content)
+                        print("OrderBook Updated:", self._orderbook)
+
+                elif destination == "/user/queue/private":
+                    if json_body:  # Ensure valid JSON
+                        self._portfolio.update_portfolio(json_body)
+                        print("User portfolio updated successfully.")
+
+                
+                    if "balance" in json_body or "Orders" in json_body:
+                        self._portfolio.update_portfolio(json_body)
+                        print("User portfolio updated successfully.")
         except Exception as e:
             print(f"Error processing message: {e}")
             traceback.print_exc()

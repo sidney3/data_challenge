@@ -7,10 +7,10 @@ import uvloop
 
 from src.trading_client import TradingClient
 
-API_KEY = "XPVLFSMBZVYHNDWG"
-username = "team99"
-URL = "http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080"
-WS_URL = "ws://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/exchange-socket"
+API_KEY = "PMNFAPQYDFPDAAGS"
+username = "team97"
+URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
+WS_URL = "ws://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080/exchange-socket"
 
 
 async def start_strategy():
@@ -23,14 +23,12 @@ async def start_strategy():
 
     await client.subscribe()
 
-    for _ in range(10):
-        await asyncio.sleep(1)
+    await asyncio.sleep(10)
 
     await client.unsubscribe()
     await client.subscribe()
 
-    for _ in range(10):
-        await asyncio.sleep(1)
+    await asyncio.sleep(10)
 
 
 async def main():

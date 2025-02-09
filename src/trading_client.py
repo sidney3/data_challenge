@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import urllib.request
 
-from src.orderbook import OrderBook
+from src.raw_orderbook import OrderBook
 from src.websocket_client import WebSocketClient
-
+from src.user_portfolio import UserPortfolio
 
 class TradingClient:
     def __init__(
@@ -30,13 +30,18 @@ class TradingClient:
         response = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
         self._session_token = response.get("sessionToken")
         self._orderbook = OrderBook(json.loads(response["orderBookData"]))
+        self._user_portfolio = UserPortfolio()
         self._client = WebSocketClient(
-            endpoint=self._ws_endpoint, orderbook=self._orderbook
+            endpoint=self._ws_endpoint, 
+            orderbook=self._orderbook, 
+            session_token = self._session_token, 
+            portfolio= self._user_portfolio,
+            username=self._username
         )
 
         return response
 
-    def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool):
+    def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool) -> None:
         """Place a Limit Order on the exchange."""
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")
@@ -55,9 +60,10 @@ class TradingClient:
             method="POST",
         )
         req.add_header("Content-Type", "application/json")
-        return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+        content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+        print(content)
 
-    def place_market(self, ticker: str, volume: float, is_bid: bool):
+    def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
         """Place a Market Order on the exchange."""
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")

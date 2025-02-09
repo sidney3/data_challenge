@@ -1,3 +1,5 @@
+from src.config.order import Order
+
 class UserPortfolio:
     def __init__(self):
         self.data = {
@@ -5,7 +7,7 @@ class UserPortfolio:
             "pnl": 0,
             "positions": {},
             "username": None,
-            "Orders": []
+            "Orders": {}
         }
 
     # Replace the entire portfolio data with a new message
@@ -14,7 +16,7 @@ class UserPortfolio:
             print("Invalid message format:", message)
             return
 
-        print(message)  # Logging the received message
+        print(message)
 
         # Reset the portfolio and set it to the new message
         self.data = {
@@ -22,18 +24,23 @@ class UserPortfolio:
             "pnl": message.get("pnl", 0),
             "positions": message.get("positions", {}),  # Replaces completely
             "username": message.get("username"),
-            "Orders": []
+            "Orders": {}
         }
 
         # Process orders if provided
         orders = message.get("Orders")
         if isinstance(orders, dict):
-            order_list = []
             for ticker, order_list_per_ticker in orders.items():
+                self.data["Orders"][ticker] = []
                 for order in order_list_per_ticker:
-                    order_with_ticker = dict(order, ticker=ticker)
-                    order_list.append(order_with_ticker)
-            self.data["Orders"] = order_list
+                    order_with_ticker = Order(
+                        ticker=ticker,
+                        volume=order["volume"],
+                        price=order["price"],
+                        side=order["side"],
+                        id=order["orderId"],
+                    )
+                    self.data["Orders"][ticker].append(order_with_ticker)
 
     # Get portfolio snapshot
     def get_portfolio(self):
