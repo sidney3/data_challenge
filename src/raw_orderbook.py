@@ -13,11 +13,11 @@ class OrderBook:
         self._orderbooks = {}
         for ticker, volumes in raw_order_book.items():
             self._orderbooks[ticker] = {
-                "bidVolumes": self._create_sorted_dict(
-                    volumes.get("bidVolumes", {}), reverse=True
+                "bids": self._create_sorted_dict(
+                    volumes.get("bids", {}), reverse=True
                 ),
-                "askVolumes": self._create_sorted_dict(
-                    volumes.get("askVolumes", {}), reverse=False
+                "asks": self._create_sorted_dict(
+                    volumes.get("asks", {}), reverse=False
                 ),
             }
 
@@ -59,25 +59,25 @@ class OrderBook:
 
             if ticker not in self._orderbooks:
                 self._orderbooks[ticker] = {
-                    "bidVolumes": OrderedDict(),
-                    "askVolumes": OrderedDict(),
+                    "bids": OrderedDict(),
+                    "asks": OrderedDict(),
                 }
 
             if side == "BID":
                 if volume == 0.0:
-                    self._orderbooks[ticker]["bidVolumes"].pop(price, None)
+                    self._orderbooks[ticker]["bids"].pop(price, None)
                 else:
-                    self._orderbooks[ticker]["bidVolumes"][price] = volume
-                    self._orderbooks[ticker]["bidVolumes"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["bidVolumes"], reverse=True
+                    self._orderbooks[ticker]["bids"][price] = volume
+                    self._orderbooks[ticker]["bids"] = self._create_sorted_dict(
+                        self._orderbooks[ticker]["bids"], reverse=True
                     )
             elif side == "ASK":
                 if volume == 0.0:
-                    self._orderbooks[ticker]["askVolumes"].pop(price, None)
+                    self._orderbooks[ticker]["asks"].pop(price, None)
                 else:
-                    self._orderbooks[ticker]["askVolumes"][price] = volume
-                    self._orderbooks[ticker]["askVolumes"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["askVolumes"], reverse=False
+                    self._orderbooks[ticker]["asks"][price] = volume
+                    self._orderbooks[ticker]["asks"] = self._create_sorted_dict(
+                        self._orderbooks[ticker]["asks"], reverse=False
                     )
             else:
                 raise ValueError("Side must be 'BID' or 'ASK'.")
@@ -90,9 +90,9 @@ class OrderBook:
         for ticker, data in self._orderbooks.items():
             output.append(f"Ticker: {ticker}")
             output.append("  Bid Volumes:")
-            for price, volume in data["bidVolumes"].items():
+            for price, volume in data["bids"].items():
                 output.append(f"    {price:.2f}: {volume:.2f}")
             output.append("  Ask Volumes:")
-            for price, volume in data["askVolumes"].items():
+            for price, volume in data["asks"].items():
                 output.append(f"    {price:.2f}: {volume:.2f}")
         return "\n".join(output)

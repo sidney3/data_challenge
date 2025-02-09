@@ -14,7 +14,14 @@ class FilteredOrderBook(OrderBook):
         return self._orderbooks
 
     def update_volumes(self, updates: list, orders: dict[str, list[Order]]) -> None:
-        self._orderbook
+        self._orderbook.update_volumes(updates=updates)
+        for order_list_per_ticker in orders.values():
+            for order in order_list_per_ticker:
+                if order.ticker in self._orderbooks:
+                    if order.side == "BUY":
+                        self._orderbooks[order.ticker]["bids"][order.price] += order.volume
+                    else:
+                        self._orderbooks[order.ticker]["asks"][order.price] += order
 
     def __repr__(self):
         return f"FilteredOrderBook({self.order_books})"
