@@ -11,11 +11,12 @@ from src.orderbook import OrderBook
 
 
 class WebSocketClient:
-    def __init__(self, endpoint: str, orderbook: OrderBook):
+    def __init__(self, endpoint: str, orderbook: OrderBook, portfolio: UserPorfolio):
         self._endpoint = endpoint
         self._subscribed: asyncio.Event | None = None
         self._ws = None
         self._orderbook = orderbook
+        self._portfolio = portfolio
 
     async def _on_open(self, ws: websockets.ClientConnection):
         print("WebSocket connection established")
