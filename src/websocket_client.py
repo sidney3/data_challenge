@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import traceback
 
@@ -36,7 +37,7 @@ class WebSocketClient:
         print("WebSocket connection established")
         # Send STOMP CONNECT frame
         connect_frame = (
-            f"CONNECT\n" f"accept-version:1.1,1.0\n" f"host:localhost\n" "\n\x00"
+            "CONNECT\n" "accept-version:1.1,1.0\n" "host:localhost\n" "\n\x00"
         )
         await ws.send(connect_frame)
 
@@ -48,7 +49,7 @@ class WebSocketClient:
 
         # Subscribe to private user queue
         user_subscribe_frame = (
-            f"SUBSCRIBE\n" f"id:sub-1\n" f"destination:/user/queue/private\n" "\n\x00"
+            "SUBSCRIBE\n" "id:sub-1\n" "destination:/user/queue/private\n" "\n\x00"
         )
         await ws.send(user_subscribe_frame)
         assert self._subscribed is not None
@@ -73,21 +74,21 @@ class WebSocketClient:
                         destination = line.split(":", 1)[1].strip()
                         break
 
-                if destination == "/topic/orderbook":
-                    if "content" in json_body:
-                        content = json.loads(json_body["content"])
-                        if isinstance(content, list):
-                            self._orderbook.update_volumes(
-                                updates=content, orders=self._portfolio.orders
-                            )
-                            if self._strategy:
-                                self._strategy.on_orderbook_update()
-
-                elif destination == "/user/queue/private":
-                    if json_body and "balance" in json_body or "Orders" in json_body:
-                        self._portfolio.update_portfolio(json_body)
+                if destination == "/topic/orderbook" and "content" in json_body:
+                    content = json.loads(json_body["content"])
+                    if isinstance(content, list):
+                        self._orderbook.update_volumes(
+                            updates=content, orders=self._portfolio.orders
+                        )
                         if self._strategy:
-                            self._strategy.on_portfolio_update()
+                            self._strategy.on_orderbook_update()
+
+                elif destination == "/user/queue/private" and (
+                    json_body and "balance" in json_body or "Orders" in json_body
+                ):
+                    self._portfolio.update_portfolio(json_body)
+                    if self._strategy:
+                        self._strategy.on_portfolio_update()
 
         except Exception as e:
             print(f"Error processing message: {e}")
@@ -131,10 +132,8 @@ class WebSocketClient:
     async def unsubscribe(self) -> None:
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         if self._ws:
             await self._ws.close()
             self._ws = None

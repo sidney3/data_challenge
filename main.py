@@ -13,7 +13,7 @@ from test_strategy import TestStrategy
 
 RATE_LIMIT = 5
 API_KEY = "PMNFAPQYDFPDAAGS"
-username = "team97"
+USERNAME = "team97"
 URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
 WS_URL = "ws://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080/exchange-socket"
 
@@ -22,15 +22,13 @@ async def start_strategy() -> None:
     client = TradingClient(
         http_endpoint=URL,
         ws_endpoint=WS_URL,
-        username=username,
+        username=USERNAME,
         api_key=API_KEY,
     )
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    strategy: Strategy = TestStrategy(
-        quoter=prioritizer, shared_state=shared_state
-    )
+    strategy: Strategy = TestStrategy(quoter=prioritizer, shared_state=shared_state)
 
     client.set_strategy(strategy=strategy)
 
@@ -48,6 +46,7 @@ async def main() -> None:
         )
         print(results)
     except Exception as e:
+        print("Exception in main", e)
         traceback.print_exc()
         for task in tasks:
             task.cancel()
