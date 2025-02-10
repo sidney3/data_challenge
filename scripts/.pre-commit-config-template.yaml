@@ -63,3 +63,6 @@ repos:
       - id: mypy
         args:
           - "--config-file=scripts/config/mypy.ini"
+        additional_dependencies:
+          - pandas-stubs
+          - sortedcontainers-stubs

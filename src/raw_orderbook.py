@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from sortedcontainers import SortedDict
+
 from src.config.order import Order
 
 
 class OrderBook:
-    def __init__(self, raw_order_book: dict | None = None):
+    def __init__(
+        self, raw_order_book: dict[str, dict[str, dict[str, str]]] | None = None
+    ):
         if raw_order_book is None:
             raw_order_book = {}
         if not isinstance(raw_order_book, dict):
@@ -23,51 +26,62 @@ class OrderBook:
             }
 
     @property
-    def orderbooks(self) -> dict:
+    def orderbooks(self) -> dict[str, dict[str, SortedDict[float, float]]]:
         return self._orderbooks
-    
-    @property
-    def best_bid(self, ticker: str) -> tuple[float, float]:
-        best_bid = self._orderbooks[ticker]["bids"].peekitem(index=0)
-        return best_bid
 
     @property
-    def best_ask(self, ticker: str) -> tuple[float, float]:
-        best_ask = self._orderbooks[ticker]["asks"].peekitem(index=0)
-        return best_ask
-    
-    @property
-    def mid(self) -> float:
-        return (self.best_bid[0] + self.best_ask[0]) / 2
+    def raw_orderbooks(self) -> dict[str, dict[str, SortedDict[float, float]]]:
+        return self._orderbooks
 
-    @property
-    def wmid(self) -> float:
-        best_bid = self.best_bid
-        best_ask = self.best_ask
-        return (best_bid[0] * best_ask[1] + best_ask[0] * best_bid[1]) / (best_bid[1] + best_ask[1])
-    
-    @property
-    def spread(self) -> float:
-        return self.best_ask[0] - self.best_bid[0]
+    def best_bid(self, ticker: str) -> tuple[float, float] | None:
+        if self._orderbooks[ticker]["bids"]:
+            return self._orderbooks[ticker]["bids"].peekitem(index=0)
+        return None
+
+    def best_ask(self, ticker: str) -> tuple[float, float] | None:
+        if self._orderbooks[ticker]["asks"]:
+            return self._orderbooks[ticker]["asks"].peekitem(index=0)
+        return None
+
+    def mid(self, ticker: str) -> float | None:
+        best_bid = self.best_bid(ticker=ticker)
+        best_ask = self.best_ask(ticker=ticker)
+        if best_bid is None or best_ask is None:
+            return None
+        return (best_bid[0] + best_ask[0]) / 2
+
+    def wmid(self, ticker: str) -> float | None:
+        best_bid = self.best_bid(ticker=ticker)
+        best_ask = self.best_ask(ticker=ticker)
+        if best_bid is None or best_ask is None:
+            return None
+        return (best_bid[0] * best_ask[1] + best_ask[0] * best_bid[1]) / (
+            best_bid[1] + best_ask[1]
+        )
+
+    def spread(self, ticker: str) -> float | None:
+        best_bid = self.best_bid(ticker=ticker)
+        best_ask = self.best_ask(ticker=ticker)
+        if best_bid is None or best_ask is None:
+            return None
+        return best_ask[0] - best_bid[0]
 
     def _create_sorted_dict(
-        self, volumes: dict, reverse: bool
+        self, volumes: dict[str, str], reverse: bool
     ) -> SortedDict[float, float]:
         if reverse:
             return SortedDict(
                 lambda x: -x,
-                [
-                    (float(price), float(qty)) for price, qty in volumes.items()
-                ]
+                [(float(price), float(qty)) for price, qty in volumes.items()],
             )
         else:
             return SortedDict(
-                [
-                    (float(price), float(qty)) for price, qty in volumes.items()
-                ]
+                [(float(price), float(qty)) for price, qty in volumes.items()]
             )
 
-    def update_volumes(self, updates: list, orders: dict[str, list[Order]]) -> None:
+    def update_volumes(
+        self, updates: list[dict[str, str]], orders: dict[str, list[Order]]
+    ) -> None:
         if not isinstance(updates, list):
             raise TypeError("Updates must be provided as a list.")
 
@@ -90,8 +104,8 @@ class OrderBook:
 
             if ticker not in self._orderbooks:
                 self._orderbooks[ticker] = {
-                    "bids": SortedDict(lambda x: -x),
-                    "asks": SortedDict(),
+                    "bids": self._create_sorted_dict({}, reverse=True),
+                    "asks": self._create_sorted_dict({}, reverse=False),
                 }
 
             if side == "BID":
@@ -99,24 +113,18 @@ class OrderBook:
                     self._orderbooks[ticker]["bids"].pop(price, None)
                 else:
                     self._orderbooks[ticker]["bids"][price] = volume
-                    self._orderbooks[ticker]["bids"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["bids"], reverse=True
-                    )
             elif side == "ASK":
                 if volume == 0.0:
                     self._orderbooks[ticker]["asks"].pop(price, None)
                 else:
                     self._orderbooks[ticker]["asks"][price] = volume
-                    self._orderbooks[ticker]["asks"] = self._create_sorted_dict(
-                        self._orderbooks[ticker]["asks"], reverse=False
-                    )
             else:
                 raise ValueError("Side must be 'BID' or 'ASK'.")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"OrderBook({self._orderbooks})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         output = []
         for ticker, data in self._orderbooks.items():
             output.append(f"Ticker: {ticker}")

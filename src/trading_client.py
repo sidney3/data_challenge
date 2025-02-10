@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import urllib.request
 
-from src.raw_orderbook import OrderBook
 from src.filtered_orderbook import FilteredOrderBook
-from src.websocket_client import WebSocketClient
-from src.user_portfolio import UserPortfolio
+from src.raw_orderbook import OrderBook
 from src.shared_state import SharedState
+from src.user_portfolio import UserPortfolio
+from src.websocket_client import WebSocketClient
 from strategy import Strategy
+
 
 class TradingClient:
     def __init__(
@@ -22,10 +23,10 @@ class TradingClient:
 
         self._user_buildup()
 
-    def set_strategy(self, strategy: Strategy):
+    def set_strategy(self, strategy: Strategy) -> None:
         self._client.set_strategy(strategy)
 
-    def _user_buildup(self):
+    def _user_buildup(self) -> None:
         """Authenticate the user and obtain a session token."""
         form_data = {"username": self._username, "apiKey": self._api_key}
         req = urllib.request.Request(
@@ -36,27 +37,29 @@ class TradingClient:
         req.add_header("Content-Type", "application/json")
         response = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
         self._session_token = response.get("sessionToken")
-        self._orderbook: OrderBook = FilteredOrderBook(raw_order_book=json.loads(response["orderBookData"]))
+        self._orderbook: OrderBook = FilteredOrderBook(
+            raw_order_book=json.loads(response["orderBookData"])
+        )
         self._user_portfolio = UserPortfolio()
         self._client = WebSocketClient(
-            endpoint=self._ws_endpoint, 
-            orderbook=self._orderbook, 
-            session_token = self._session_token, 
-            portfolio= self._user_portfolio,
-            username=self._username
+            endpoint=self._ws_endpoint,
+            orderbook=self._orderbook,
+            session_token=self._session_token,
+            portfolio=self._user_portfolio,
+            username=self._username,
         )
         self._shared_state = SharedState(
             orderbook=self._orderbook,
             portfolio=self._user_portfolio,
         )
 
-        return response
-    
     @property
     def shared_state(self) -> SharedState:
         return self._shared_state
 
-    def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool) -> None:
+    def place_limit(
+        self, ticker: str, volume: float, price: float, is_bid: bool
+    ) -> None:
         """Place a Limit Order on the exchange."""
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")
@@ -99,7 +102,7 @@ class TradingClient:
 
     def remove_all(
         self,
-    ):
+    ) -> None:
         form_data = {
             "username": self._username,
             "sessionToken": self._session_token,
@@ -111,9 +114,8 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         response = urllib.request.urlopen(req).read().decode("utf-8")
-        return json.loads(response)
 
-    def get_details(self):
+    def get_details(self) -> None:
         form_data = {
             "username": self._username,
             "sessionToken": self._session_token,
@@ -125,10 +127,9 @@ class TradingClient:
         )
         req.add_header("Content-Type", "application/json")
         response = urllib.request.urlopen(req).read().decode("utf-8")
-        return json.loads(response)
 
-    async def subscribe(self):
+    async def subscribe(self) -> None:
         await self._client.subscribe()
 
-    async def unsubscribe(self):
+    async def unsubscribe(self) -> None:
         await self._client.unsubscribe()

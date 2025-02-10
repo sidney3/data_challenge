@@ -1,7 +1,7 @@
 # Setting Up Environment
 
 ## Running Locally
-We've provided support for 2 environment tools: venv and pyenv-virtualenv. 
+We've provided support for 2 environment tools: venv and pyenv-virtualenv.
 ### venv
 `source scripts/env.sh venv`
 ### pyenv
@@ -36,6 +36,7 @@ The orderbook is stored in the SharedState. The orderbook is, by default, filter
 
 To access the depth of a bid for a particular ticker and price level:
 `depth = shared_state.orderbooks[ticker]["bids"][price_level]`
+
 Likewise, to access the depth of an ask:
 `depth = shared_state.orderbooks[ticker]["asks"][price_level]`
 

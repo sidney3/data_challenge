@@ -6,7 +6,9 @@ if TYPE_CHECKING:
     from src.shared_state import SharedState
     from src.prioritizer import Prioritizer
 
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
+
 
 class Strategy(ABC):
     def __init__(self, quoter: Prioritizer, shared_state: SharedState):
@@ -17,10 +19,9 @@ class Strategy(ABC):
         await self._quoter.subscribe()
 
     @abstractmethod
-    def on_orderbook_update() -> None:
+    def on_orderbook_update(self) -> None:
         pass
 
     @abstractmethod
-    def on_portfolio_update() -> None:
+    def on_portfolio_update(self) -> None:
         pass
-    

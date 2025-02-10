@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from src.raw_orderbook import OrderBook
-from src.filtered_orderbook import FilteredOrderBook
-from src.config.order import Order
 from src.user_portfolio import UserPortfolio
+
 
 class SharedState:
     def __init__(self, orderbook: OrderBook, portfolio: UserPortfolio):
@@ -11,7 +12,7 @@ class SharedState:
     @property
     def orderbook(self) -> OrderBook:
         return self._orderbook
-    
+
     @property
     def portfolio(self) -> UserPortfolio:
         return self._portfolio

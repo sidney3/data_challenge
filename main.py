@@ -5,11 +5,11 @@ import traceback
 
 import uvloop
 
-from src.trading_client import TradingClient
+from data_challenge_strategy import DataChallengeStrategy
 from src.prioritizer import Prioritizer
+from src.trading_client import TradingClient
 from strategy import Strategy
 from test_strategy import TestStrategy
-from data_challenge_strategy import DataChallengeStrategy
 
 RATE_LIMIT = 5
 API_KEY = "PMNFAPQYDFPDAAGS"
@@ -18,7 +18,7 @@ URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
 WS_URL = "ws://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080/exchange-socket"
 
 
-async def start_strategy():
+async def start_strategy() -> None:
     client = TradingClient(
         http_endpoint=URL,
         ws_endpoint=WS_URL,
@@ -28,16 +28,19 @@ async def start_strategy():
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    strat: Strategy = DataChallengeStrategy(quoter=prioritizer, shared_state=shared_state)
+    strategy: Strategy = TestStrategy(
+        quoter=prioritizer, shared_state=shared_state
+    )
 
-    client.set_strategy(strategy=strat)
-    
-    await strat.start()
+    client.set_strategy(strategy=strategy)
+
+    await strategy.start()
 
     await asyncio.sleep(10)
 
-async def main():
-    tasks = [asyncio.create_task(start_strategy())]
+
+async def main() -> None:
+    tasks: list[asyncio.Task[None]] = [asyncio.create_task(start_strategy())]
     try:
         results = await asyncio.gather(
             *tasks,
@@ -48,7 +51,7 @@ async def main():
         traceback.print_exc()
         for task in tasks:
             task.cancel()
-        await asyncio.gather(tasks, return_exceptions=True)
+        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 if __name__ == "__main__":
