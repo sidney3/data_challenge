@@ -17,7 +17,9 @@ class TestStrategy(Strategy):
         print(self._shared_state.orderbook.best_bid(ticker="A"))
         print(self._shared_state.orderbook.best_ask(ticker="A"))
         self._quoter.place_limit(ticker="A", volume=1, price=self._cnt, is_bid=True)
-        self._quoter.place_limit(ticker="A", volume=1, price=100-self._cnt, is_bid=False)
+        self._quoter.place_limit(
+            ticker="A", volume=1, price=100 - self._cnt, is_bid=False
+        )
         self._cnt += 1
 
     def on_portfolio_update(self) -> None:
