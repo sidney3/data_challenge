@@ -14,7 +14,7 @@ class DataChallengeStrategy(Strategy):
     def __init__(self, quoter: Prioritizer, shared_state: SharedState):
         super().__init__(quoter, shared_state)
         self._tick_cnt = 0
-        self._test_data = pd.read_csv("test_data.csv")
+        self._test_data = pd.read_csv("trial_test_data.csv")
 
     def on_orderbook_update(self) -> None:
         tick = self._test_data.iloc[self._tick_cnt]
