@@ -50,3 +50,11 @@ class UserPortfolio:
     @property
     def orders(self) -> dict[str, list[Order]]:
         return self.data["orders"]
+
+    @property
+    def balance(self) -> float:
+        return self.data["balance"]
+
+    @property
+    def pnl(self) -> float:
+        return self.data["pnl"]

@@ -33,6 +33,19 @@ We have provided a simple quoter that performs client-side rate limiting in `Pri
 
 ## Filtered Orderbook
 The orderbook is stored in the SharedState. The orderbook is, by default, filtered to exclude your own orders. You can access both the raw orderbook if needed, though.
+To access the depth of a bid for a particular ticker and price level:
+`depth = shared_state.orderbooks[ticker]["bids"][price_level]`
+Likewise, to access the depth of an ask:
+`depth = shared_state.orderbooks[ticker]["asks"][price_level]`
 
 ## User Portfolio
 The user portfolio is stored in the SharedState. You can access the your positions, balance, open orders, etc.
+The portfolio is stored as a dictionary.
+To access the balance of a particular ticker:
+`balance = shared_state.portfolio.positions[ticker]`
+To access the open orders of a particular ticker:
+`open_orders = shared_state.portfolio.orders[ticker]`
+To access the balance:
+`balance = shared_state.portfolio.balance`
+To access the PnL:
+`pnl = shared_state.portfolio.pnl`
