@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import time
 import traceback
 
 import websockets
 
 from src.raw_orderbook import OrderBook
 from src.user_portfolio import UserPortfolio
+from strategy import Strategy
 
 class WebSocketClient:
     def __init__(self, endpoint: str, orderbook: OrderBook, session_token: str, portfolio: UserPortfolio, username: str):
@@ -19,6 +19,10 @@ class WebSocketClient:
         self._session_token = session_token
         self._portfolio = portfolio
         self._username = username
+        self._strategy: Strategy | None = None
+
+    def set_strategy(self, strategy: Strategy):
+        self._strategy = strategy 
 
     async def _on_open(self, ws: websockets.ClientConnection):
         print("WebSocket connection established")
@@ -75,14 +79,15 @@ class WebSocketClient:
                         content = json.loads(json_body["content"])
                         if isinstance(content, list):
                             self._orderbook.update_volumes(updates=content, orders=self._portfolio.orders)
+                            if self._strategy:
+                                self._strategy.on_orderbook_update()
 
                 elif destination == "/user/queue/private":
-                    if json_body:  # Ensure valid JSON
+                    if json_body and "balance" in json_body or "Orders" in json_body:
                         self._portfolio.update_portfolio(json_body)
+                        if self._strategy:
+                            self._strategy.on_portfolio_update()
 
-                
-                    if "balance" in json_body or "Orders" in json_body:
-                        self._portfolio.update_portfolio(json_body)
         except Exception as e:
             print(f"Error processing message: {e}")
             traceback.print_exc()

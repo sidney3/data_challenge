@@ -9,6 +9,9 @@ class Prioritizer:
         self._trading_client = trading_client
         self._rate_limit_window = deque()
 
+    async def subscribe(self) -> None:
+        await self._trading_client.subscribe()
+
     def _update_rate_limit_window(self) -> None:
         current_time = time.time()
         while self._rate_limit_window and self._rate_limit_window[0] < current_time - 1:
@@ -29,3 +32,11 @@ class Prioritizer:
             return
         self._rate_limit_window.append(time.time())
         self._trading_client.place_market(ticker, volume, is_bid)
+
+    def remove_all(self):
+        self._update_rate_limit_window()
+        if len(self._rate_limit_window) >= self._rate_limit:
+            print(f"Remove all orders rejected due to rate limit") 
+            return
+        self._rate_limit_window.append(time.time())
+        self._trading_client.remove_all()

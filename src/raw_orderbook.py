@@ -24,16 +24,48 @@ class OrderBook:
 
     @property
     def orderbooks(self) -> dict:
-        return self._orderbooks 
+        return self._orderbooks
+    
+    @property
+    def best_bid(self, ticker: str) -> tuple[float, float]:
+        best_bid = self._orderbooks[ticker]["bids"].peekitem(index=0)
+        return best_bid
+
+    @property
+    def best_ask(self, ticker: str) -> tuple[float, float]:
+        best_ask = self._orderbooks[ticker]["asks"].peekitem(index=0)
+        return best_ask
+    
+    @property
+    def mid(self) -> float:
+        return (self.best_bid[0] + self.best_ask[0]) / 2
+
+    @property
+    def wmid(self) -> float:
+        best_bid = self.best_bid
+        best_ask = self.best_ask
+        return (best_bid[0] * best_ask[1] + best_ask[0] * best_bid[1]) / (best_bid[1] + best_ask[1])
+    
+    @property
+    def spread(self) -> float:
+        return self.best_ask[0] - self.best_bid[0]
 
     def _create_sorted_dict(
         self, volumes: dict, reverse: bool
     ) -> SortedDict[float, float]:
-        return SortedDict(
-            [
-                (float(price), float(qty)) for price, qty in volumes.items()
-            ]
-        )
+        if reverse:
+            return SortedDict(
+                lambda x: -x,
+                [
+                    (float(price), float(qty)) for price, qty in volumes.items()
+                ]
+            )
+        else:
+            return SortedDict(
+                [
+                    (float(price), float(qty)) for price, qty in volumes.items()
+                ]
+            )
 
     def update_volumes(self, updates: list, orders: dict[str, list[Order]]) -> None:
         if not isinstance(updates, list):
@@ -58,7 +90,7 @@ class OrderBook:
 
             if ticker not in self._orderbooks:
                 self._orderbooks[ticker] = {
-                    "bids": SortedDict(),
+                    "bids": SortedDict(lambda x: -x),
                     "asks": SortedDict(),
                 }
 

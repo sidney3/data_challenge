@@ -7,6 +7,8 @@ from src.raw_orderbook import OrderBook
 from src.filtered_orderbook import FilteredOrderBook
 from src.websocket_client import WebSocketClient
 from src.user_portfolio import UserPortfolio
+from src.shared_state import SharedState
+from strategy import Strategy
 
 class TradingClient:
     def __init__(
@@ -16,8 +18,12 @@ class TradingClient:
         self._ws_endpoint = ws_endpoint
         self._username = username
         self._api_key = api_key
+        self._strategy = None
 
         self._user_buildup()
+
+    def set_strategy(self, strategy: Strategy):
+        self._client.set_strategy(strategy)
 
     def _user_buildup(self):
         """Authenticate the user and obtain a session token."""
@@ -30,7 +36,7 @@ class TradingClient:
         req.add_header("Content-Type", "application/json")
         response = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
         self._session_token = response.get("sessionToken")
-        self._orderbook = FilteredOrderBook(raw_order_book=json.loads(response["orderBookData"]))
+        self._orderbook: OrderBook = FilteredOrderBook(raw_order_book=json.loads(response["orderBookData"]))
         self._user_portfolio = UserPortfolio()
         self._client = WebSocketClient(
             endpoint=self._ws_endpoint, 
@@ -39,8 +45,16 @@ class TradingClient:
             portfolio= self._user_portfolio,
             username=self._username
         )
+        self._shared_state = SharedState(
+            orderbook=self._orderbook,
+            portfolio=self._user_portfolio,
+        )
 
         return response
+    
+    @property
+    def shared_state(self) -> SharedState:
+        return self._shared_state
 
     def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool) -> None:
         """Place a Limit Order on the exchange."""

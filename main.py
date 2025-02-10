@@ -6,7 +6,12 @@ import traceback
 import uvloop
 
 from src.trading_client import TradingClient
+from src.prioritizer import Prioritizer
+from strategy import Strategy
+from test_strategy import TestStrategy
+from data_challenge_strategy import DataChallengeStrategy
 
+RATE_LIMIT = 5
 API_KEY = "PMNFAPQYDFPDAAGS"
 username = "team97"
 URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
@@ -20,18 +25,16 @@ async def start_strategy():
         username=username,
         api_key=API_KEY,
     )
+    shared_state = client.shared_state
+    prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    await client.subscribe()
+    strat: Strategy = DataChallengeStrategy(quoter=prioritizer, shared_state=shared_state)
 
-    for i in range(10):
-        client.place_limit(ticker="A", volume=1, price=100+i, is_bid=True)
-        await asyncio.sleep(1)
-
-    await client.unsubscribe()
-    await client.subscribe()
+    client.set_strategy(strategy=strat)
+    
+    await strat.start()
 
     await asyncio.sleep(10)
-
 
 async def main():
     tasks = [asyncio.create_task(start_strategy())]

@@ -44,12 +44,9 @@ class UserPortfolio:
         return self.data.copy()
 
     @property
-    def positions(self):
+    def positions(self) -> dict[str, float]:
         return self.data["positions"]
 
     @property
-    def orders(self):
+    def orders(self) -> dict[str, list[Order]]:
         return self.data["orders"]
-
-
-# Example
