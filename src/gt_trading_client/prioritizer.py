@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from collections import deque
 
-from src.trading_client import TradingClient
+from .trading_client import TradingClient
 
 
 class Prioritizer:

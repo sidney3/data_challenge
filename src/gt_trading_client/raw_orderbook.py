@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sortedcontainers import SortedDict
 
-from src.config.order import Order
+from .config.order import Order
 
 
 class OrderBook:

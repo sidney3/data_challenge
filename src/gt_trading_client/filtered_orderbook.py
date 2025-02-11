@@ -4,9 +4,9 @@ import copy
 
 from sortedcontainers import SortedDict
 
-from src.config.order import Order
-from src.config.order import OrderSide
-from src.raw_orderbook import OrderBook
+from .config.order import Order
+from .config.order import OrderSide
+from .raw_orderbook import OrderBook
 
 
 class FilteredOrderBook(OrderBook):

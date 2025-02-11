@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from src.prioritizer import Prioritizer
-from src.shared_state import SharedState
-from src.strategy import Strategy
+from gt_trading_client import Prioritizer
+from gt_trading_client import SharedState
+from gt_trading_client import Strategy
 
 
 class TestStrategy(Strategy):

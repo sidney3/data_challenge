@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import urllib.request
 
-from src.filtered_orderbook import FilteredOrderBook
-from src.raw_orderbook import OrderBook
-from src.shared_state import SharedState
-from src.user_portfolio import UserPortfolio
-from src.websocket_client import WebSocketClient
-from src.strategy import Strategy
+from .filtered_orderbook import FilteredOrderBook
+from .raw_orderbook import OrderBook
+from .shared_state import SharedState
+from .user_portfolio import UserPortfolio
+from .websocket_client import WebSocketClient
+from .strategy import Strategy
 
 
 class TradingClient:

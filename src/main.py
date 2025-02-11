@@ -6,9 +6,9 @@ import traceback
 import uvloop
 
 from data_challenge_strategy import DataChallengeStrategy
-from src.prioritizer import Prioritizer
-from src.trading_client import TradingClient
-from src.strategy import Strategy
+from gt_trading_client import Prioritizer
+from gt_trading_client import TradingClient
+from gt_trading_client import Strategy
 from test_strategy import TestStrategy
 
 RATE_LIMIT = 5

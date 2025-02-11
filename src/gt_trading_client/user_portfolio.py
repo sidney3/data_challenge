@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.config.order import Order
+from .config.order import Order
 
 
 class UserPortfolio:

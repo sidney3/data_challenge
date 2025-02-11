@@ -7,9 +7,9 @@ import traceback
 
 import websockets
 
-from src.raw_orderbook import OrderBook
-from src.user_portfolio import UserPortfolio
-from src.strategy import Strategy
+from .raw_orderbook import OrderBook
+from .user_portfolio import UserPortfolio
+from .strategy import Strategy
 
 
 class WebSocketClient:

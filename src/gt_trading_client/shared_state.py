@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from src.raw_orderbook import OrderBook
-from src.user_portfolio import UserPortfolio
+from .raw_orderbook import OrderBook
+from .user_portfolio import UserPortfolio
 
 
 class SharedState:

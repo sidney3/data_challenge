@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.shared_state import SharedState
-    from src.prioritizer import Prioritizer
+    from .shared_state import SharedState
+    from .prioritizer import Prioritizer
 
 from abc import ABC
 from abc import abstractmethod
