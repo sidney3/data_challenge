@@ -1,10 +1,10 @@
 #!/bin/bash
 
-REPO_PATH=$(git rev-parse --show-toplevel)
-REPO_NAME=$(basename "$REPO_PATH")
-echo $REPO_NAME $REPO_PATH
-
 if [ "$1" = "pyenv" ]; then
+    REPO_PATH=$(git rev-parse --show-toplevel)
+    REPO_NAME=$(basename "$REPO_PATH")
+    echo $REPO_NAME $REPO_PATH
+
     if command -v pyenv 1>/dev/null 2>&1; then
         eval "$(pyenv init --path)"
         eval "$(pyenv init -)"
