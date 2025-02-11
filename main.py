@@ -8,7 +8,7 @@ import uvloop
 from data_challenge_strategy import DataChallengeStrategy
 from src.prioritizer import Prioritizer
 from src.trading_client import TradingClient
-from strategy import Strategy
+from src.strategy import Strategy
 from test_strategy import TestStrategy
 
 RATE_LIMIT = 5

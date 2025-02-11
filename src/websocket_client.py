@@ -9,7 +9,7 @@ import websockets
 
 from src.raw_orderbook import OrderBook
 from src.user_portfolio import UserPortfolio
-from strategy import Strategy
+from src.strategy import Strategy
 
 
 class WebSocketClient:

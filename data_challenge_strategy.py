@@ -4,7 +4,7 @@ import pandas as pd
 
 from src.prioritizer import Prioritizer
 from src.shared_state import SharedState
-from strategy import Strategy
+from src.strategy import Strategy
 
 SYMBOLS = ["A", "B", "C", "D", "E"]
 VOLUME = 1e7

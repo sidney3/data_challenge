@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.prioritizer import Prioritizer
 from src.shared_state import SharedState
-from strategy import Strategy
+from src.strategy import Strategy
 
 
 class TestStrategy(Strategy):

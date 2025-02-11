@@ -8,7 +8,7 @@ from src.raw_orderbook import OrderBook
 from src.shared_state import SharedState
 from src.user_portfolio import UserPortfolio
 from src.websocket_client import WebSocketClient
-from strategy import Strategy
+from src.strategy import Strategy
 
 
 class TradingClient:
