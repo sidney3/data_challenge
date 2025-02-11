@@ -3,9 +3,17 @@
 ## Running Locally
 We've provided support for 2 environment tools: venv and pyenv-virtualenv.
 ### venv
+If you use `python` alias, run:
 `source scripts/env.sh venv`
+
+If you use `python3` alias, run:
+`source scripts/env.sh venv --python3`
 ### pyenv
+If you use `python` alias, run:
 `source scripts/env.sh pyenv`
+
+If you use `python3` alias, run:
+`source scripts/env.sh pyenv --python3`
 
 ## Running in Docker
 To start the docker container:
