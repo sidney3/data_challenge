@@ -1,6 +1,25 @@
 #!/bin/bash
 
-if [ "$1" = "pyenv" ]; then
+ENV_TOOL=$1
+shift
+
+PYTHON_CMD="python"
+PIP_CMD="pip"
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --python3)
+            PYTHON_CMD="python3"
+            PIP_CMD="pip3"
+            ;;
+        *) 
+            echo "Unknown python alias: $1"
+            ;;
+    esac
+    shift
+done
+
+if [ $ENV_TOOL = "pyenv" ]; then
     REPO_PATH=$(git rev-parse --show-toplevel)
     REPO_NAME=$(basename "$REPO_PATH")
     echo $REPO_NAME $REPO_PATH
@@ -41,19 +60,19 @@ if [ "$1" = "pyenv" ]; then
     pyenv activate $VENV_NAME
     echo "activated virtual environment $VENV_NAME."
 
-    pip install -U pip pip-tools
+    $PIP_CMD install -U pip pip-tools
     pip-compile scripts/requirements.in
     pip-sync scripts/requirements.txt
-elif [ "$1" = "venv" ]; then
+elif [ $ENV_TOOL = "venv" ]; then
     if [ ! -d "./.venv" ]; then
-        python -m venv .venv
+        $PYTHON_CMD -m venv .venv
         echo "created virtual environment."
     fi
 
     source ./.venv/bin/activate
     echo "activated virtual environment."
 
-    pip install -U pip pip-tools
+    $PIP_CMD install -U pip pip-tools
     pip-compile scripts/requirements.in
     pip-sync scripts/requirements.txt
 else
