@@ -113,7 +113,7 @@ class TradingClient:
             method="POST",
         )
         req.add_header("Content-Type", "application/json")
-        response = urllib.request.urlopen(req).read().decode("utf-8")
+        content = urllib.request.urlopen(req).read().decode("utf-8")
 
     def get_details(self) -> None:
         form_data = {
@@ -126,7 +126,7 @@ class TradingClient:
             method="POST",
         )
         req.add_header("Content-Type", "application/json")
-        response = urllib.request.urlopen(req).read().decode("utf-8")
+        content = urllib.request.urlopen(req).read().decode("utf-8")
 
     async def subscribe(self) -> None:
         await self._client.subscribe()

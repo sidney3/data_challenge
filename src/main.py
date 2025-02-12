@@ -11,7 +11,7 @@ from gt_trading_client import TradingClient
 from gt_trading_client import Strategy
 from test_strategy import TestStrategy
 
-RATE_LIMIT = 5
+RATE_LIMIT = 15
 API_KEY = "PMNFAPQYDFPDAAGS"
 USERNAME = "team97"
 URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
@@ -28,7 +28,7 @@ async def start_strategy() -> None:
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    strategy: Strategy = TestStrategy(quoter=prioritizer, shared_state=shared_state)
+    strategy: Strategy = DataChallengeStrategy(quoter=prioritizer, shared_state=shared_state)
 
     client.set_strategy(strategy=strategy)
 

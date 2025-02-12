@@ -4,6 +4,8 @@ from gt_trading_client import Prioritizer
 from gt_trading_client import SharedState
 from gt_trading_client import Strategy
 
+import time
+
 
 class TestStrategy(Strategy):
     def __init__(self, quoter: Prioritizer, shared_state: SharedState):
@@ -11,18 +13,10 @@ class TestStrategy(Strategy):
         self._cnt = 1
 
     def on_orderbook_update(self) -> None:
-        print("Orderbook update")
-        print(self._shared_state.orderbook.raw_orderbooks["A"]["bids"])
-        print(self._shared_state.orderbook.raw_orderbooks["A"]["asks"])
-        print(self._shared_state.orderbook.best_bid(ticker="A"))
-        print(self._shared_state.orderbook.best_ask(ticker="A"))
-        self._quoter.place_limit(ticker="A", volume=1, price=self._cnt, is_bid=True)
-        self._quoter.place_limit(
-            ticker="A", volume=1, price=100 - self._cnt, is_bid=False
-        )
+        print("Orderbook update", self._cnt, time.time())
+        #self._quoter.place_limit(ticker="A", volume=1, price=self._cnt, is_bid=True)
         self._cnt += 1
 
     def on_portfolio_update(self) -> None:
         print("Portfolio update")
-        print(self._shared_state.portfolio.orders)
         pass

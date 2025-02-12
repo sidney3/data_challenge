@@ -11,6 +11,8 @@ from .raw_orderbook import OrderBook
 from .user_portfolio import UserPortfolio
 from .strategy import Strategy
 
+import time
+
 
 class WebSocketClient:
     def __init__(
@@ -108,7 +110,7 @@ class WebSocketClient:
     async def _subscribe_ws(self) -> None:
         while True:
             try:
-                async with websockets.connect(self._endpoint) as ws:
+                async with websockets.connect(self._endpoint, max_queue=None) as ws:
                     await self._on_open(ws)
                     self._ws = ws
                     while True:
