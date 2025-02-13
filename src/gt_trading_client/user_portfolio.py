@@ -13,20 +13,18 @@ class UserPortfolio:
         self._username = None
         self._orders: dict[str, list[Order]] = {}
 
-    # Replace the entire portfolio data with a new message
     def update_portfolio(self, message: dict[str, Any]) -> None:
+        return
         if not isinstance(message, dict):
             print("Invalid message format:", message)
             return
 
-        # Reset the portfolio and set it to the new message
         self._balance = float(message.get("balance", 0))
         self._pnl = float(message.get("pnl", 0))
-        self._positions = message.get("positions", {})  # Replaces completely
+        self._positions = message.get("positions", {})
         self._username = message.get("username")
         self._orders = {}
 
-        # Process orders if provided
         orders = message.get("Orders")
         if isinstance(orders, dict):
             for ticker, order_list_per_ticker in orders.items():
@@ -40,6 +38,19 @@ class UserPortfolio:
                         id=order["orderId"],
                     )
                     self._orders[ticker].append(order_with_ticker)
+
+    def add_order(self, order: Order) -> None:
+        if order.ticker not in self._orders:
+            self._orders[order.ticker] = []
+        self._orders[order.ticker].append(order)
+
+    def add_position(self, ticker: str, position_delta: float) -> None:
+        if ticker not in self._positions:
+            self._positions[ticker] = 0
+        self._positions[ticker] += position_delta
+
+    def clear_orders(self) -> None:
+        self._orders = {}
 
     @property
     def positions(self) -> dict[str, float]:

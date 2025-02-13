@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from typing import Any
+
 import json
 import urllib.request
+import aiohttp
+import asyncio
 
 from .filtered_orderbook import FilteredOrderBook
 from .raw_orderbook import OrderBook
@@ -9,6 +13,7 @@ from .shared_state import SharedState
 from .user_portfolio import UserPortfolio
 from .websocket_client import WebSocketClient
 from .strategy import Strategy
+from .config.order import Order, OrderSide
 
 
 class TradingClient:
@@ -56,14 +61,59 @@ class TradingClient:
     @property
     def shared_state(self) -> SharedState:
         return self._shared_state
+    
+    def _error_check(self, message: dict[str, Any]) -> bool:
+        if message["error"] != "":
+            return False
+        return True
 
-    def place_limit(
-        self, ticker: str, volume: float, price: float, is_bid: bool
-    ) -> None:
-        """Place a Limit Order on the exchange."""
-        if not self._session_token:
-            raise Exception("User not authenticated. Call user_buildup first.")
+    # def place_limit(
+    #     self, ticker: str, volume: float, price: float, is_bid: bool
+    # ) -> None:
+    #     """Place a Limit Order on the exchange."""
+    #     if not self._session_token:
+    #         raise Exception("User not authenticated. Call user_buildup first.")
 
+    #     form_data = {
+    #         "username": self._username,
+    #         "sessionToken": self._session_token,
+    #         "ticker": ticker,
+    #         "volume": volume,
+    #         "price": price,
+    #         "isBid": is_bid,
+    #     }
+    #     req = urllib.request.Request(
+    #         self._http_endpoint + "/limit_order",
+    #         data=json.dumps(form_data).encode("utf-8"),
+    #         method="POST",
+    #     )
+    #     req.add_header("Content-Type", "application/json")
+    #     content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+    #     message = json.loads(content["message"])
+    #     if not self._error_check(message=message):
+    #         return
+    #     volume_filled = message["volumeFilled"]
+    #     volume_remaining = volume - volume_filled
+    #     order_id = message["orderId"]
+    #     if volume_filled > 0:
+    #         self._user_portfolio.add_position(
+    #             ticker=ticker,
+    #             position_delta=volume_filled if is_bid else -volume_filled,
+    #         )
+    #     if volume_remaining > 0:
+    #         self._user_portfolio.add_order(
+    #             order=Order(
+    #                 ticker=ticker,
+    #                 volume=volume_remaining,
+    #                 price=price,
+    #                 side=OrderSide.BID if is_bid else OrderSide.ASK,
+    #                 id=order_id,
+    #             )
+    #         )
+
+    async def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool) -> None:
+        """ Sends a limit order asynchronously using aiohttp """
+        url = f"{self._http_endpoint}/limit_order"
         form_data = {
             "username": self._username,
             "sessionToken": self._session_token,
@@ -72,19 +122,69 @@ class TradingClient:
             "price": price,
             "isBid": is_bid,
         }
-        req = urllib.request.Request(
-            self._http_endpoint + "/limit_order",
-            data=json.dumps(form_data).encode("utf-8"),
-            method="POST",
-        )
-        req.add_header("Content-Type", "application/json")
-        content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
 
-    def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
-        """Place a Market Order on the exchange."""
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=form_data) as response:
+                content = await response.json()
+                print(content)
+                message = json.loads(content["message"])
+                if not self._error_check(message=message):
+                    return
+                volume_filled = message["volumeFilled"]
+                volume_remaining = volume - volume_filled
+                order_id = message["orderId"]
+                if volume_filled > 0:
+                    self._user_portfolio.add_position(
+                        ticker=ticker,
+                        position_delta=volume_filled if is_bid else -volume_filled,
+                    )
+                if volume_remaining > 0:
+                    self._user_portfolio.add_order(
+                        order=Order(
+                            ticker=ticker,
+                            volume=volume_remaining,
+                            price=price,
+                            side=OrderSide.BID if is_bid else OrderSide.ASK,
+                            id=order_id,
+                        )
+                    )
+
+
+    # def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
+    #     """Place a Market Order on the exchange."""
+    #     if not self._session_token:
+    #         raise Exception("User not authenticated. Call user_buildup first.")
+
+    #     form_data = {
+    #         "username": self._username,
+    #         "sessionToken": self._session_token,
+    #         "ticker": ticker,
+    #         "volume": volume,
+    #         "isBid": is_bid,
+    #     }
+    #     req = urllib.request.Request(
+    #         self._http_endpoint + "/market_order",
+    #         data=json.dumps(form_data).encode("utf-8"),
+    #         method="POST",
+    #     )
+    #     req.add_header("Content-Type", "application/json")
+    #     content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+    #     message = json.loads(content["message"])
+    #     if not self._error_check(message=message):
+    #         return
+    #     volume_filled = message["volumeFilled"]
+    #     if volume_filled > 0:
+    #         self._user_portfolio.add_position(
+    #             ticker=ticker,
+    #             position_delta=volume_filled if is_bid else -volume_filled,
+    #         )
+            
+    async def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
+        """Place a market order asynchronously using aiohttp."""
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")
 
+        url = f"{self._http_endpoint}/market_order"
         form_data = {
             "username": self._username,
             "sessionToken": self._session_token,
@@ -92,41 +192,61 @@ class TradingClient:
             "volume": volume,
             "isBid": is_bid,
         }
-        req = urllib.request.Request(
-            self._http_endpoint + "/market_order",
-            data=json.dumps(form_data).encode("utf-8"),
-            method="POST",
-        )
-        req.add_header("Content-Type", "application/json")
-        content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
 
-    def remove_all(
-        self,
-    ) -> None:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=form_data) as response:
+                content = await response.json()
+                message = json.loads(content["message"])
+
+                if not self._error_check(message=message):
+                    return
+
+                volume_filled = message["volumeFilled"]
+                if volume_filled > 0:
+                    self._user_portfolio.add_position(
+                        ticker=ticker,
+                        position_delta=volume_filled if is_bid else -volume_filled,
+                    )
+
+    # def remove_all(
+    #     self,
+    # ) -> None:
+    #     form_data = {
+    #         "username": self._username,
+    #         "sessionToken": self._session_token,
+    #     }
+    #     req = urllib.request.Request(
+    #         self._http_endpoint + "/remove_all",
+    #         data=json.dumps(form_data).encode("utf-8"),
+    #         method="POST",
+    #     )
+    #     req.add_header("Content-Type", "application/json")
+    #     content = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+    #     message = json.loads(content["message"]) if content.get("message") else None
+    #     if not message or not self._error_check(message=message):
+    #         return
+    #     self._user_portfolio.clear_orders()
+
+    async def remove_all(self) -> None:
+        """Remove all orders asynchronously using aiohttp."""
+        if not self._session_token:
+            raise Exception("User not authenticated. Call user_buildup first.")
+
+        url = f"{self._http_endpoint}/remove_all"
         form_data = {
             "username": self._username,
             "sessionToken": self._session_token,
         }
-        req = urllib.request.Request(
-            self._http_endpoint + "/remove_all",
-            data=json.dumps(form_data).encode("utf-8"),
-            method="POST",
-        )
-        req.add_header("Content-Type", "application/json")
-        content = urllib.request.urlopen(req).read().decode("utf-8")
 
-    def get_details(self) -> None:
-        form_data = {
-            "username": self._username,
-            "sessionToken": self._session_token,
-        }
-        req = urllib.request.Request(
-            self._http_endpoint + "/get_details",
-            data=json.dumps(form_data).encode("utf-8"),
-            method="POST",
-        )
-        req.add_header("Content-Type", "application/json")
-        content = urllib.request.urlopen(req).read().decode("utf-8")
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=form_data) as response:
+                content = await response.json()  # Parse JSON response asynchronously
+                message = json.loads(content["message"]) if content.get("message") else None
+
+                if not message or not self._error_check(message=message):
+                    return
+
+                self._user_portfolio.clear_orders()
 
     async def subscribe(self) -> None:
         await self._client.subscribe()

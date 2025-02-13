@@ -19,9 +19,9 @@ class Strategy(ABC):
         await self._quoter.subscribe()
 
     @abstractmethod
-    def on_orderbook_update(self) -> None:
+    async def on_orderbook_update(self) -> None:
         pass
 
     @abstractmethod
-    def on_portfolio_update(self) -> None:
+    async def on_portfolio_update(self) -> None:
         pass

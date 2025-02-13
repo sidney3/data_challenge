@@ -20,7 +20,7 @@ class Prioritizer:
         while self._rate_limit_window and self._rate_limit_window[0] < current_time - 1:
             self._rate_limit_window.popleft()
 
-    def place_limit(
+    async def place_limit(
         self, ticker: str, volume: float, price: float, is_bid: bool
     ) -> None:
         self._update_rate_limit_window()
@@ -30,9 +30,9 @@ class Prioritizer:
             )
             return
         self._rate_limit_window.append(time.time())
-        self._trading_client.place_limit(ticker, volume, price, is_bid)
+        await self._trading_client.place_limit(ticker, volume, price, is_bid)
 
-    def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
+    async def place_market(self, ticker: str, volume: float, is_bid: bool) -> None:
         self._update_rate_limit_window()
         if len(self._rate_limit_window) >= self._rate_limit:
             print(
@@ -40,12 +40,12 @@ class Prioritizer:
             )
             return
         self._rate_limit_window.append(time.time())
-        self._trading_client.place_market(ticker, volume, is_bid)
+        await self._trading_client.place_market(ticker, volume, is_bid)
 
-    def remove_all(self) -> None:
+    async def remove_all(self) -> None:
         self._update_rate_limit_window()
         if len(self._rate_limit_window) >= self._rate_limit:
             print("Remove all orders rejected due to rate limit")
             return
         self._rate_limit_window.append(time.time())
-        self._trading_client.remove_all()
+        await self._trading_client.remove_all()

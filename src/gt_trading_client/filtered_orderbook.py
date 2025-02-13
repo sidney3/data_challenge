@@ -33,6 +33,8 @@ class FilteredOrderBook(OrderBook):
             for order in order_list_per_ticker:
                 if order.ticker in self._orderbooks:
                     if order.side == OrderSide.BID:
+                        if order.price not in self._orderbooks[order.ticker]["bids"]:
+                            continue
                         self._orderbooks[order.ticker]["bids"][
                             order.price
                         ] -= order.volume
@@ -41,6 +43,8 @@ class FilteredOrderBook(OrderBook):
                                 order.price, None
                             )
                     else:
+                        if order.price not in self._orderbooks[order.ticker]["asks"]:
+                            continue
                         self._orderbooks[order.ticker]["asks"][
                             order.price
                         ] -= order.volume

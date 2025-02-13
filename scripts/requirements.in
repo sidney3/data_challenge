@@ -3,6 +3,7 @@ pre-commit
 ipykernel
 ipython
 
+aiohttp
 sortedcontainers
 uvloop
 websockets

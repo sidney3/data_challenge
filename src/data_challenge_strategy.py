@@ -16,7 +16,7 @@ class DataChallengeStrategy(Strategy):
         self._tick_cnt = 0
         self._test_data = pd.read_csv("trial_test_data.csv")
 
-    def on_orderbook_update(self) -> None:
+    async def on_orderbook_update(self) -> None:
         tick = self._test_data.iloc[self._tick_cnt]
         self._quoter.remove_all()
         for symbol in SYMBOLS:
@@ -34,5 +34,5 @@ class DataChallengeStrategy(Strategy):
             )
         self._tick_cnt += 1
 
-    def on_portfolio_update(self) -> None:
+    async def on_portfolio_update(self) -> None:
         pass
