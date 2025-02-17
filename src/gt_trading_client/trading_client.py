@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
-
 import json
 import urllib.request
-import aiohttp
-import asyncio
+from typing import Any
 
+import aiohttp
+
+from .config.order import Order
+from .config.order import OrderSide
 from .filtered_orderbook import FilteredOrderBook
 from .raw_orderbook import OrderBook
 from .shared_state import SharedState
+from .strategy import Strategy
 from .user_portfolio import UserPortfolio
 from .websocket_client import WebSocketClient
-from .strategy import Strategy
-from .config.order import Order, OrderSide
 
 
 class TradingClient:
@@ -66,13 +66,15 @@ class TradingClient:
     @property
     def shared_state(self) -> SharedState:
         return self._shared_state
-    
+
     def _error_check(self, message: dict[str, Any]) -> bool:
         if message["error"] != "":
             return False
         return True
 
-    def _limit_params(self, ticker: str, volume: float, price: float, is_bid: bool) -> tuple[str, dict[str, Any]]:
+    def _limit_params(
+        self, ticker: str, volume: float, price: float, is_bid: bool
+    ) -> tuple[str, dict[str, Any]]:
         url = f"{self._http_endpoint}/limit_order"
         form_data = {
             "username": self._username,
@@ -84,13 +86,17 @@ class TradingClient:
         }
         return (url, form_data)
 
-    async def place_limit(self, ticker: str, volume: float, price: float, is_bid: bool) -> None:
-        """ Sends a limit order asynchronously using aiohttp """
+    async def place_limit(
+        self, ticker: str, volume: float, price: float, is_bid: bool
+    ) -> None:
+        """Sends a limit order asynchronously using aiohttp"""
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")
 
-        url, form_data = self._limit_params(ticker=ticker, volume=volume, price=price, is_bid=is_bid)
-        
+        url, form_data = self._limit_params(
+            ticker=ticker, volume=volume, price=price, is_bid=is_bid
+        )
+
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
                 content = await response.json()
@@ -116,7 +122,9 @@ class TradingClient:
                         )
                     )
 
-    def _market_params(self, ticker: str, volume: float, price: float, is_bid: bool) -> tuple[str, dict[str, Any]]:
+    def _market_params(
+        self, ticker: str, volume: float, is_bid: bool
+    ) -> tuple[str, dict[str, Any]]:
         url = f"{self._http_endpoint}/market_order"
         form_data = {
             "username": self._username,
@@ -132,7 +140,9 @@ class TradingClient:
         if not self._session_token:
             raise Exception("User not authenticated. Call user_buildup first.")
 
-        url, form_data = self._market_params(ticker=ticker, volume=volume, is_bid=is_bid)
+        url, form_data = self._market_params(
+            ticker=ticker, volume=volume, is_bid=is_bid
+        )
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
@@ -167,7 +177,9 @@ class TradingClient:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
                 content = await response.json()  # Parse JSON response asynchronously
-                message = json.loads(content["message"]) if content.get("message") else None
+                message = (
+                    json.loads(content["message"]) if content.get("message") else None
+                )
 
                 if not message or not self._error_check(message=message):
                     return
