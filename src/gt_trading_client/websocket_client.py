@@ -79,13 +79,11 @@ class WebSocketClient:
                 if destination == "/topic/orderbook" and "content" in json_body:
                     content = json.loads(json_body["content"])
                     if isinstance(content, list):
-                        t0 = time.time()
                         self._orderbook.update_volumes(
                             updates=content, orders=self._portfolio.orders
                         )
                         if self._strategy:
                             await self._strategy.on_orderbook_update()
-                        print("Orderbook update took", time.time() - t0)
 
                 elif destination == "/user/queue/private" and (
                     json_body and "balance" in json_body or "Orders" in json_body
