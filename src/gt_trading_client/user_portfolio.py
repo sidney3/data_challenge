@@ -14,7 +14,6 @@ class UserPortfolio:
         self._orders: dict[str, list[Order]] = {}
 
     def update_portfolio(self, message: dict[str, Any]) -> None:
-        return
         if not isinstance(message, dict):
             print("Invalid message format:", message)
             return
