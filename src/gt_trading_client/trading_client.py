@@ -31,11 +31,16 @@ class TradingClient:
     def set_strategy(self, strategy: Strategy) -> None:
         self._client.set_strategy(strategy)
 
+    def _user_buildup_params(self) -> tuple[str, dict[str, Any]]:
+        url = self._http_endpoint + "/buildup"
+        form_data = {"username": self._username, "apiKey": self._api_key}
+        return (url, form_data)
+
     def _user_buildup(self) -> None:
         """Authenticate the user and obtain a session token."""
-        form_data = {"username": self._username, "apiKey": self._api_key}
+        url, form_data = self._user_buildup_params()
         req = urllib.request.Request(
-            self._http_endpoint + "/buildup",
+            url=url,
             data=json.dumps(form_data).encode("utf-8"),
             method="POST",
         )
