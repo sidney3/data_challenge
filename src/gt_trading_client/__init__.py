@@ -5,6 +5,7 @@ __version__ = "1.0.0"
 
 from .config.order import LimitOrder
 from .config.order import MarketOrder
+from .config.order import PlacableOrder
 from .config.order import RemoveAll
 from .config.order import RemoveOrder
 from .filtered_orderbook import FilteredOrderBook
@@ -27,4 +28,5 @@ __all__ = [
     "MarketOrder",
     "RemoveOrder",
     "RemoveAll",
+    "PlacableOrder",
 ]
