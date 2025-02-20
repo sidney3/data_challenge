@@ -2,24 +2,30 @@
 
 ## Running Locally
 We've provided support for 2 environment tools: venv and pyenv-virtualenv.
-### Windows
-When running locally, use admin powershell. The scripts will not work without sufficient permissions or if they are executed in command prompt.
-### venv
+### Linux/MacOS
+#### venv
 If you use `python` alias, run:
 `source scripts/env.sh venv`
 
 If you use `python3` alias, run:
 `source scripts/env.sh venv --python3`
-### pyenv
+#### pyenv
 If you use `python` alias, run:
 `source scripts/env.sh pyenv`
 
 If you use `python3` alias, run:
 `source scripts/env.sh pyenv --python3`
+### Windows
+#### venv
+Run the following commands inside an admin powershell.
+
+If you use `python` alias, run:
+`. scripts/env.sh venv`
+
+If you use `python3` alias, run:
+`. scripts/env.sh venv --python3`
 ### Without Script
 If for whatever reason the script doesn't work, you can manually set up the environment by creating a virtual environment and installing the dependencies inside `scripts/requirements.in`.
-### Adding Dependencies
-If you need to add dependencies, add them to `scripts/requirements.in` and run the same commmand you used to setup the environment.
 
 ## Running in Docker
 To start the docker container:
@@ -27,6 +33,9 @@ To start the docker container:
 Once inside `/app` in the container:
 `source scripts/env.sh venv`
 Note the container mounts your local file system of the repo to `/app` in the container.
+
+## Adding Dependencies
+If you need to add dependencies, add them to `scripts/requirements.in` and run the same commmand you used to setup the environment.
 
 # Exchange Client Program
 ## Overview
