@@ -2,6 +2,8 @@
 
 ## Running Locally
 We've provided support for 2 environment tools: venv and pyenv-virtualenv.
+### Windows
+When running locally, use admin powershell. The scripts will not work without sufficient permissions or if they are executed in command prompt.
 ### venv
 If you use `python` alias, run:
 `source scripts/env.sh venv`

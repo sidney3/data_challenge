@@ -5,7 +5,7 @@ import re
 from itertools import dropwhile
 
 INSTALLS = """
-!pip install sortedcontainers websockets pandas numpy
+!pip install sortedcontainers aiohttp websockets pandas numpy
 """
 
 IMPORTS = """
