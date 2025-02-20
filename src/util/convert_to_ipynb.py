@@ -11,6 +11,7 @@ INSTALLS = """
 IMPORTS = """
 from __future__ import annotations
 
+import aiohttp
 import asyncio
 import contextlib
 import copy
@@ -74,7 +75,7 @@ def remove_top_imports(code: str) -> str:
     return "\n".join(new_lines)
 
 
-def convert_py_to_ipynb(output_notebook: str = "main.ipynb") -> None:
+def convert_py_to_ipynb(output_notebook: str = "client.ipynb") -> None:
     """
     Converts all Python source files in a directory into a Jupyter Notebook (.ipynb).
 

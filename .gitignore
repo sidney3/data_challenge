@@ -6,4 +6,4 @@ train_data.csv
 test_data.csv
 trial_train_data.csv
 trial_test_data.csv
-main.ipynb
+client.ipynb
