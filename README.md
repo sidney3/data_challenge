@@ -14,6 +14,10 @@ If you use `python` alias, run:
 
 If you use `python3` alias, run:
 `source scripts/env.sh pyenv --python3`
+### Without Script
+If for whatever reason the script doesn't work, you can manually set up the environment by creating a virtual environment and installing the dependencies inside `scripts/requirements.in`.
+### Adding Dependencies
+If you need to add dependencies, add them to `scripts/requirements.in` and run the same commmand you used to setup the environment.
 
 ## Running in Docker
 To start the docker container:

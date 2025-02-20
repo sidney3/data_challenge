@@ -5,7 +5,7 @@ import re
 from itertools import dropwhile
 
 INSTALLS = """
-!pip install sortedcontainers uvloop websockets pandas numpy
+!pip install sortedcontainers websockets pandas numpy
 """
 
 IMPORTS = """
@@ -26,7 +26,6 @@ from enum import Enum
 from typing import Any
 
 import nest_asyncio
-import uvloop
 import websockets
 from sortedcontainers import SortedDict
 

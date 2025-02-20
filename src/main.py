@@ -3,9 +3,6 @@ from __future__ import annotations
 import asyncio
 import traceback
 
-import uvloop
-
-from data_challenge_strategy import DataChallengeStrategy
 from gt_trading_client import Prioritizer
 from gt_trading_client import TradingClient
 from gt_trading_client import Strategy
@@ -34,7 +31,7 @@ async def start_strategy() -> None:
 
     await strategy.start()
 
-    await asyncio.sleep(10)
+    await asyncio.sleep(1000000)
 
 
 async def main() -> None:
@@ -54,5 +51,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(main())

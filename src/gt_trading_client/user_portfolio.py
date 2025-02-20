@@ -9,7 +9,7 @@ class UserPortfolio:
     def __init__(self) -> None:
         self._balance: float = 0
         self._pnl: float = 0
-        self._positions: dict[str, float] = {}
+        self._positions: dict[str, dict[str, float]] = {}
         self._username = None
         self._orders: dict[str, list[Order]] = {}
 
@@ -43,10 +43,16 @@ class UserPortfolio:
             self._orders[order.ticker] = []
         self._orders[order.ticker].append(order)
 
-    def add_position(self, ticker: str, position_delta: float) -> None:
+    def add_position(self, ticker: str, position_delta: float, price: float) -> None:
         if ticker not in self._positions:
-            self._positions[ticker] = 0
-        self._positions[ticker] += position_delta
+            self._positions[ticker] = {"quantity": 0, "averagePrice": 0}
+        self._positions[ticker]["averagePrice"] *= self._positions[ticker]["quantity"]
+        self._positions[ticker]["averagePrice"] += position_delta * price
+        self._positions[ticker]["quantity"] += position_delta
+        if self._positions[ticker]["quantity"] == 0:
+            self._positions[ticker]["averagePrice"] = 0
+        else:
+            self._positions[ticker]["averagePrice"] /= self._positions[ticker]["quantity"]
 
     def clear_orders(self) -> None:
         self._orders = {}

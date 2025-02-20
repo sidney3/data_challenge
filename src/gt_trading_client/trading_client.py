@@ -68,7 +68,7 @@ class TradingClient:
         return self._shared_state
 
     def _error_check(self, message: dict[str, Any]) -> bool:
-        if message["error"] != "":
+        if message["errorCode"] != 0:
             return False
         return True
 
@@ -100,7 +100,8 @@ class TradingClient:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
                 content = await response.json()
-                message = json.loads(content["message"])
+                print(content)
+                message = content["message"]
                 if not self._error_check(message=message):
                     return
                 volume_filled = message["volumeFilled"]
@@ -147,16 +148,18 @@ class TradingClient:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
                 content = await response.json()
-                message = json.loads(content["message"])
+                message = content["message"]
 
                 if not self._error_check(message=message):
                     return
 
                 volume_filled = message["volumeFilled"]
+                price = message["price"]
                 if volume_filled > 0:
                     self._user_portfolio.add_position(
                         ticker=ticker,
                         position_delta=volume_filled if is_bid else -volume_filled,
+                        price=price,
                     )
 
     def _remove_all_params(self) -> tuple[str, dict[str, Any]]:
@@ -177,9 +180,8 @@ class TradingClient:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=form_data) as response:
                 content = await response.json()  # Parse JSON response asynchronously
-                message = (
-                    json.loads(content["message"]) if content.get("message") else None
-                )
+                print(content)
+                message = content["message"]
 
                 if not message or not self._error_check(message=message):
                     return
