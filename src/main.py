@@ -11,11 +11,17 @@ from test_strategy import TestStrategy
 RATE_LIMIT = 15
 API_KEY = "PMNFAPQYDFPDAAGS"
 USERNAME = "team97"
-URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
-WS_URL = "ws://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080/exchange-socket"
+URI = 'ec2-3-16-107-184.us-east-2.compute.amazonaws.com'
+URL = f"http://{URI}:8080"
+WS_URL = f"ws://{URI}:8080/exchange-socket"
 
 
 async def start_strategy() -> None:
+    """
+    Async method to start a strategy.
+    Returns: None
+
+    """
     client = TradingClient(
         http_endpoint=URL,
         ws_endpoint=WS_URL,
@@ -35,6 +41,11 @@ async def start_strategy() -> None:
 
 
 async def main() -> None:
+    """
+    Main async method for running all client tasks as asynchronous coroutines.
+    Returns: None
+
+    """
     tasks: list[asyncio.Task[None]] = [asyncio.create_task(start_strategy())]
     try:
         results = await asyncio.gather(

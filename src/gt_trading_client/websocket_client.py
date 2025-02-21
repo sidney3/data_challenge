@@ -15,6 +15,10 @@ import time
 
 
 class WebSocketClient:
+    """
+    WebSocketClient to connect to websocket and receive live stream of market data.
+    """
+
     def __init__(
         self,
         endpoint: str,
@@ -23,6 +27,15 @@ class WebSocketClient:
         portfolio: UserPortfolio,
         username: str,
     ):
+        """
+        Constructor.
+        Args:
+            endpoint: str - link to endpoint
+            orderbook: OrderBook - orderbook object
+            session_token: str - session token of authenticated user
+            portfolio: UserPortfolio - portfolio of user
+            username: str - username of authenticated user
+        """
         self._endpoint = f"{endpoint}?Session-ID={session_token}&Username={username}"
         self._subscribed: asyncio.Event | None = None
         self._ws = None
@@ -33,6 +46,14 @@ class WebSocketClient:
         self._strategy: Strategy | None = None
 
     def set_strategy(self, strategy: Strategy) -> None:
+        """
+        Setter method for strategy.
+        Args:
+            strategy: Strategy - user implemented trading strategy
+
+        Returns: None
+
+        """
         self._strategy = strategy
 
     async def _on_open(self, ws: websockets.ClientConnection) -> None:
@@ -61,6 +82,16 @@ class WebSocketClient:
     async def _on_message(
         self, ws: websockets.ClientConnection, message: websockets.Data
     ) -> None:
+        """
+        Async method to process message from socket.
+        Calls on_orderbook_update and on_portfolio_update methods of user strategy.
+        Args:
+            ws: ws.websockets.ClientConnection
+            message: websockets.Data - data received from websocket
+
+        Returns: None
+
+        """
         try:
             if isinstance(message, bytes):
                 message = message.decode("utf-8")
@@ -99,15 +130,39 @@ class WebSocketClient:
     async def _on_error(
         self, ws: websockets.ClientConnection, error: Exception
     ) -> None:
+        """
+        Async method to handle error.
+        Args:
+            ws:
+            error: Exception - exception thrown by the program.
+
+        Returns: None
+
+        """
         print(f"Error: {error}")
 
     async def _on_close(
         self, ws: websockets.ClientConnection, close_status_code: int, close_msg: str
     ) -> None:
+        """
+        Called to teardown the websocket connection.
+        Args:
+            ws:
+            close_status_code:
+            close_msg:
+
+        Returns: None
+
+        """
         print(f"Disconnected: {close_msg if close_msg else 'No message'}")
         self._connected = False
 
     async def _subscribe_ws(self) -> None:
+        """
+        Async method to subscribe to websocket.
+        Returns: None
+
+        """
         while True:
             try:
                 async with websockets.connect(self._endpoint, max_queue=None) as ws:
@@ -125,6 +180,11 @@ class WebSocketClient:
                 await asyncio.sleep(5)
 
     async def subscribe(self) -> None:
+        """
+        Subscribe method which subscribes to websocket and sets task.
+        Returns: None
+
+        """
         if self._subscribed:
             await self._subscribed.wait()
         self._subscribed = asyncio.Event()
@@ -132,6 +192,11 @@ class WebSocketClient:
         await self._subscribed.wait()
 
     async def unsubscribe(self) -> None:
+        """
+        Unsubscribe method to cancel task and teardown socket connection.
+        Returns: None
+
+        """
         if self._task:
             self._task.cancel()
             with contextlib.suppress(asyncio.CancelledError):

@@ -10,6 +10,9 @@ from .raw_orderbook import OrderBook
 
 
 class FilteredOrderBook(OrderBook):
+    """
+    FilteredOrderBook class for representing a filtered orderbook without any of the user's open orders.
+    """
     def __init__(
         self, raw_order_book: dict[str, dict[str, dict[str, str]]] | None = None
     ) -> None:
@@ -27,6 +30,15 @@ class FilteredOrderBook(OrderBook):
     def update_volumes(
         self, updates: list[dict[str, str]], orders: dict[str, list[Order]]
     ) -> None:
+        """
+        Updates the orderbook with new data, filtering out all current open orders.
+        Args:
+            updates: list[dict[str, str]] - data structure representing updates made to orderbook
+            orders: dict[str, list[Order]] - open orders of client to filter out of orderbook
+
+        Returns: None
+
+        """
         self._orderbook.update_volumes(updates=updates, orders=orders)
         self._orderbooks = copy.deepcopy(self._orderbook.orderbooks)
         for order_list_per_ticker in orders.values():
