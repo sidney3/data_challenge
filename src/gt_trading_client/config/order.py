@@ -15,6 +15,15 @@ class OrderSide(str, Enum):
 # Used to represent orders returned from portfolio
 @dataclass
 class Order:
+    """
+    Order object to represent order data returned from portfolio.
+    Attributes:
+        ticker: str - represents ticker of the order
+        price: float - represents price of order
+        volume: float - represents volume of order
+        side: OrderSide - represents side of order (bid/ask)
+        id: int - represents order ID tracked by exchange
+    """
     ticker: str
     price: float
     volume: float

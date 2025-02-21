@@ -1,6 +1,7 @@
 __pycache__/
 .mypy_cache/
 .venv/
+.idea
 
 train_data.csv
 test_data.csv
