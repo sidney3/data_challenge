@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import pandas as pd
-from gt_trading_client import SharedState
-from dataclasses import dataclass
-from config import Config
 
-@dataclass
-class PredictedPrice:
-    price: float
-    variance: float
+from gt_trading_client import SharedState
+
+from config import Config
 
 class PricingEngine:
     config_: Config
@@ -19,17 +15,25 @@ class PricingEngine:
     # Exponentially weighted moving average related state and computations #
     ########################################################################
 
-    symbol_estimates_: pd.Series
-    symbol_variants_: pd.Series
+    symbol_estimates_: pd.Series = None
+    symbol_variances_: pd.Series = None
+    prior_prices_: pd.Series = None
 
-    def compute_next_exponential_avg(self, new_prices: pd.Series) -> tuple[pd.Series, pd.Series]:
+    def compute_next_exponential_avg(self, new_prices: pd.Series):
         """
-        Spits out new_symbol_estimates_, new_symbol_variants_
+        Update new_symbol_estimates_, new_symbol_variants_, prior_prices
         """
-        new_estimates = (self.config_.smoothing_factor * new_prices) + (1 - self.config_.smoothing_factor) * self.symbol_estimates_
-        new_variances = (self.config_.smoothing_factor * new_prices) + (1 - self.config_.smoothing_factor) * self.symbol_estimates_
+        if not self.prior_prices_:
+            self.prior_prices_ = new_prices
+            self.symbol_estimates_ = new_prices
+            self.symbol_variances_ = pd.Series({ticker: 0 for ticker in self.config_.tickers})
+            return
 
-        return new_estimates, new_variances
+        smoothing = self.config_.smoothing_factor
+
+        self.symbol_estimates_ = (smoothing * new_prices) + (1 - smoothing) * self.symbol_estimates_
+        self.symbol_variances_ = (smoothing * (new_prices - self.prior_prices_)) + (1 - smoothing) * self.symbol_variances_
+        self.prior_prices_ = new_prices
 
     def __init__(self, shared_state: SharedState, historical_data: pd.DataFrame, config: Config):
         """
@@ -39,21 +43,26 @@ class PricingEngine:
 
             historical_data.iloc[0]["AAPL"] will give the price of 
             "AAPL" at tick 0
-        @config
-            a str -> float dict describing the configuration of our
-            pricing. Example:
-
-            "smoothing_factor" -> 0.5
         """
         self.config_ = config
         self.historical_data_ = historical_data
         self.shared_state_ = shared_state
 
+        for row in self.historical_data_:
+            self.on_new_prices(row)
+            print(f'fair values after latest data sample: {self.fair_values()}')
+
     def on_new_prices(self, prices: pd.Series):
         """
         prices is a series indexed by ticker name
         """
-        self.symbol_estimates, self.symbol_variances_ = self.compute_next_exponential_avg(prices)
+        self.compute_next_exponential_avg(prices)
+
+    def on_tick(self):
+        new_prices = pd.Series({
+            ticker: self.shared_state_.orderbook.wmid(ticker) for ticker in self.config_.tickers
+        })
+        self.on_new_prices(new_prices)
 
     def fair_values(self) -> tuple[pd.Series, pd.Series]:
         """

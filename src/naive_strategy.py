@@ -4,23 +4,23 @@ from gt_trading_client import Prioritizer
 from gt_trading_client import SharedState
 from gt_trading_client import Strategy
 
+from config import Config
+from pricing_engine import PricingEngine
+
+import pandas as pd
 import time
 import asyncio
 
-
-class TestStrategy(Strategy):
-    def __init__(self, quoter: Prioritizer, shared_state: SharedState):
+class NaiveStrategy(Strategy):
+    pricing_engine: PricingEngine
+    def __init__(self, quoter: Prioritizer, shared_state: SharedState, config: Config, historical_data: pd.DataFrame):
         super().__init__(quoter, shared_state)
-        self._cnt = 1
+        self.pricing_engine = PricingEngine(shared_state, historical_data, config)
 
     async def on_orderbook_update(self) -> None:
         print("Orderbook update", self._cnt, time.time())
-        # asyncio.create_task(self._quoter.remove_all())
-        asyncio.create_task(self._quoter.place_limit(ticker="A", volume=1, price=50+self._cnt, is_bid=True))
-        asyncio.create_task(self._quoter.place_limit(ticker="A", volume=1, price=950-self._cnt, is_bid=False))
-        # asyncio.create_task(self._quoter.place_market(ticker="A", volume=1, is_bid=True))
-        # asyncio.create_task(self._quoter.place_market(ticker="A", volume=1, is_bid=False))
-        self._cnt += 1
+        self.pricing_engine.on_tick()
+        pass
 
     async def on_portfolio_update(self) -> None:
         print("Portfolio update", self._cnt, time.time())
