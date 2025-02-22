@@ -2,6 +2,12 @@ from __future__ import annotations
 
 import pandas as pd
 from gt_trading_client import SharedState
+from dataclasses import dataclass
+
+@dataclass
+class PredictedPrice:
+    price: float
+    variance: float
 
 class PricingEngine:
     def __init__(self, shared_state: SharedState, historical_data: pd.DataFrame):
@@ -15,7 +21,8 @@ class PricingEngine:
         "AAPL" at tick 0
         """
         pass
+
     def on_tick(self):
         pass
-    def fair_values(self) -> dict[str, float]:
+    def fair_values(self) -> dict[str, PredictedPrice]:
         return {}
