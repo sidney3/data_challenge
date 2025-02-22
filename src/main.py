@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import traceback
 import pandas as pd
+import os
 
 from gt_trading_client import Prioritizer
 from gt_trading_client import TradingClient
@@ -35,7 +36,11 @@ async def start_strategy() -> None:
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    data = pd.read_csv("../mock_train_data.csv")
+    print(f'{os.getcwd()=}')
+    data = pd.read_csv("mock_train_data.csv")
+    config = Config()
+    config.tickers = data.columns.to_list()
+    print(f'tickers: {config.tickers}')
     print(data)
     
     strategy: Strategy = NaiveStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
