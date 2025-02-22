@@ -73,7 +73,7 @@ elif [ $ENV_TOOL = "venv" ]; then
     echo "activated virtual environment."
 
     $PIP_CMD install -U pip pip-tools
-    pip-compile scripts/requirements.in
+    pip-compile --verbose scripts/requirements.in
     pip-sync scripts/requirements.txt
 else
     echo "the selected environment tool is not supported: $1."
