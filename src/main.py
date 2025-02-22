@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import traceback
+import pandas as pd
 
 from gt_trading_client import Prioritizer
 from gt_trading_client import TradingClient
 from gt_trading_client import Strategy
 from test_strategy import TestStrategy
+from naive_strategy import NaiveStrategy
+from config import Config
+
 
 RATE_LIMIT = 15
 API_KEY = "VUEFDIYRNIGPFYVD"
@@ -31,7 +35,10 @@ async def start_strategy() -> None:
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    strategy: Strategy = TestStrategy(quoter=prioritizer, shared_state=shared_state)
+    data = pd.read_csv("../mock_train_data.csv")
+    print(data)
+    
+    strategy: Strategy = NaiveStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
 
     client.set_strategy(strategy=strategy)
 

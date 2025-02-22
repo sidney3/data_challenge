@@ -17,23 +17,20 @@ class PricingEngine:
 
     symbol_estimates_: pd.Series = None
     symbol_variances_: pd.Series = None
-    prior_prices_: pd.Series = None
 
     def compute_next_exponential_avg(self, new_prices: pd.Series):
         """
         Update new_symbol_estimates_, new_symbol_variants_, prior_prices
         """
         if not self.prior_prices_:
-            self.prior_prices_ = new_prices
             self.symbol_estimates_ = new_prices
             self.symbol_variances_ = pd.Series({ticker: 0 for ticker in self.config_.tickers})
             return
 
         smoothing = self.config_.smoothing_factor
 
+        self.symbol_variances_ = (smoothing * (new_prices - self.symbol_estimates_)) + (1 - smoothing) * self.symbol_variances_
         self.symbol_estimates_ = (smoothing * new_prices) + (1 - smoothing) * self.symbol_estimates_
-        self.symbol_variances_ = (smoothing * (new_prices - self.prior_prices_)) + (1 - smoothing) * self.symbol_variances_
-        self.prior_prices_ = new_prices
 
     def __init__(self, shared_state: SharedState, historical_data: pd.DataFrame, config: Config):
         """
