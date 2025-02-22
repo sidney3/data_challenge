@@ -4,8 +4,6 @@ from gt_trading_client import Prioritizer
 from gt_trading_client import SharedState
 from gt_trading_client import Strategy
 
-from config import Config
-
 import time
 import asyncio
 
