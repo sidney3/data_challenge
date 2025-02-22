@@ -15,5 +15,7 @@ class PricingEngine:
         "AAPL" at tick 0
         """
         pass
+    def on_tick(self):
+        pass
     def fair_values(self) -> dict[str, float]:
         return {}
