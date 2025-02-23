@@ -5,6 +5,12 @@ import pandas as pd
 from gt_trading_client import SharedState
 
 from config import Config
+from dataclasses import dataclass
+
+@dataclass
+class FairValue:
+    price: float
+    variance: float
 
 class PricingEngine:
     config_: Config
@@ -64,8 +70,9 @@ class PricingEngine:
         })
         self.on_new_prices(new_prices)
 
-    def fair_values(self) -> tuple[pd.Series, pd.Series]:
+    def fair_values(self) -> pd.Series:
         """
-        returns a tuple of [EstimatedPrices, Variance]
+        returns a series of FairValue objects
         """
-        return self.symbol_estimates_, self.symbol_variances_
+        return pd.Series({ticker: FairValue(self.symbol_estimates_[ticker], self.symbol_variances_[ticker]) 
+                          for ticker in self.config_.tickers})
