@@ -15,22 +15,26 @@ class PricingEngine:
     # Exponentially weighted moving average related state and computations #
     ########################################################################
 
-    symbol_estimates_: pd.Series = None
-    symbol_variances_: pd.Series = None
+    symbol_estimates_: pd.Series = pd.Series([])
+    symbol_variances_: pd.Series = pd.Series([])
 
     def compute_next_exponential_avg(self, new_prices: pd.Series):
         """
         Update new_symbol_estimates_, new_symbol_variants_, prior_prices
         """
-        if not self.prior_prices_:
+        # uninitialized
+        if self.symbol_estimates_.empty:
             self.symbol_estimates_ = new_prices
             self.symbol_variances_ = pd.Series({ticker: 0 for ticker in self.config_.tickers})
             return
 
         smoothing = self.config_.smoothing_factor
 
-        self.symbol_variances_ = (smoothing * (new_prices - self.symbol_estimates_)) + (1 - smoothing) * self.symbol_variances_
+        self.symbol_variances_ = (smoothing * abs(new_prices - self.symbol_estimates_)) + (1 - smoothing) * self.symbol_variances_
         self.symbol_estimates_ = (smoothing * new_prices) + (1 - smoothing) * self.symbol_estimates_
+
+        assert all(self.symbol_estimates_)
+        assert all(self.symbol_variances_)
 
     def __init__(self, shared_state: SharedState, historical_data: pd.DataFrame, config: Config):
         """
@@ -45,9 +49,8 @@ class PricingEngine:
         self.historical_data_ = historical_data
         self.shared_state_ = shared_state
 
-        for row in self.historical_data_:
-            self.on_new_prices(row)
-            print(f'fair values after latest data sample: {self.fair_values()}')
+        for i, row in self.historical_data_.iterrows():
+            self.on_new_prices(row.loc[self.config_.tickers])
 
     def on_new_prices(self, prices: pd.Series):
         """

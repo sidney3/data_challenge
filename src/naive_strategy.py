@@ -21,28 +21,48 @@ class NaiveStrategy(Strategy):
         super().__init__(quoter, shared_state)
         self.pricing_engine_ = PricingEngine(shared_state, historical_data, config)
         self.config_ = config
-        self.next_allowed_trade_ = datetime.now() + self.config_.trade_every
+        self.last_quoted_at_ = pd.Series([0 for _ in config.tickers], index=config.tickers)
+        self.last_time_we_traded_ = datetime.now()
 
-    async def on_orderbook_update(self) -> None:
-        print("Orderbook update", self._cnt, time.time())
-        self.notify_count_ += 1
-        self.pricing_engine_.on_tick()
-        if datetime.now() < self.next_allowed_trade_:
+    async def refresh_levels(self) -> None:
+        """
+        Based on the computed fair values, refresh all of our levels
+        """
+        fair_values, variances = self.pricing_engine_.fair_values()
+
+        max_price_discrepency = max(fair_values - self.last_quoted_at_)
+
+        if max_price_discrepency >= self.config_.close_all_positions_limit:
+            await self._quoter.remove_all()
+
+        should_update_levels = max_price_discrepency >= self.config_.change_our_position_within \
+            and (datetime.now() - self.last_time_we_traded_) > self.config_.rate_limit
+
+        if not should_update_levels:
             return
 
-        self.next_allowed_trade_ = datetime.now() + self.config_.trade_every
-        fair_values, variances = self.pricing_engine_.fair_values()
+        print(f'time since we last traded: {datetime.now() - self.last_time_we_traded_}')
+        self.last_time_we_traded = datetime.now()
+        self.last_quoted_at_ = fair_values
+
+        await self._quoter.remove_all()
+
         for ticker in self.config_.tickers:
             sdev = np.sqrt(variances[ticker])
-
+            print(f'{variances[ticker]=}, {sdev=}')
             z_value = 1.645  # 90% confidence level
-            lower_bound = fair_values[ticker] - z_value * sdev
-            upper_bound = fair_values[ticker] + z_value * sdev
+            lower_bound = fair_values[ticker] - 2 * sdev
+            upper_bound = fair_values[ticker] + 2 * sdev
 
-            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume = 1, price = lower_bound, is_bid = True))
-            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume = 1, price = upper_bound, is_bid = False))
+            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume= 50, price=lower_bound, is_bid = True))
+            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume= 50, price=upper_bound, is_bid = False))
+
+
+
+    async def on_orderbook_update(self) -> None:
+        print("Orderbook update", datetime.now())
+        self.pricing_engine_.on_tick()
+        asyncio.create_task(self.refresh_levels())
 
     async def on_portfolio_update(self) -> None:
         print(f'Portfolio update. New PNL: {self.get_pnl()}')
-        print(self._shared_state.portfolio.positions)
-        pass

@@ -36,13 +36,8 @@ async def start_strategy() -> None:
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    print(f'{os.getcwd()=}')
-    data = pd.read_csv("mock_train_data.csv")
-    config = Config()
-    config.tickers = data.columns.to_list()
-    print(f'tickers: {config.tickers}')
-    print(data)
-    
+    data = pd.read_csv("mock_train_data.csv").rename(columns={"Stock" + ticker + "_Price" : ticker for ticker in Config.tickers})
+
     strategy: Strategy = NaiveStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
 
     client.set_strategy(strategy=strategy)
