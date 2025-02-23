@@ -136,8 +136,8 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
-            "price": price,
+            "volume": int(volume),
+            "price": int(price),
             "isBid": is_bid,
         }
         return (url, form_data)
@@ -207,7 +207,7 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
+            "volume": int(volume),
             "isBid": is_bid,
         }
         return (url, form_data)
