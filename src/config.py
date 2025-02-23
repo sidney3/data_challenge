@@ -14,4 +14,8 @@ class Config:
 
     close_all_positions_limit: float = 10
 
+    # if the fair value falls at least this constant outside our
+    # posted range, pull all of our orders.
+    close_position_if_this_far_outside: float = 3
+
     rate_limit = timedelta(seconds=2)
