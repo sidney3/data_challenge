@@ -136,8 +136,8 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
-            "price": price,
+            "volume": int(volume),
+            "price": int(price),
             "isBid": is_bid,
         }
         return (url, form_data)
@@ -176,6 +176,7 @@ class TradingClient:
                     self._user_portfolio.add_position(
                         ticker=ticker,
                         position_delta=volume_filled if is_bid else -volume_filled,
+                        price=price,
                     )
                 if volume_remaining > 0:
                     self._user_portfolio.add_order(
@@ -206,7 +207,7 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
+            "volume": int(volume),
             "isBid": is_bid,
         }
         return (url, form_data)
