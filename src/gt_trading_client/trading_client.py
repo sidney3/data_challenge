@@ -176,6 +176,7 @@ class TradingClient:
                     self._user_portfolio.add_position(
                         ticker=ticker,
                         position_delta=volume_filled if is_bid else -volume_filled,
+                        price=price,
                     )
                 if volume_remaining > 0:
                     self._user_portfolio.add_order(
