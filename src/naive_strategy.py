@@ -31,49 +31,44 @@ class NaiveStrategy(Strategy):
     # our posted ranges. We will act on this instantly (i.e. ignoring rate limits)
     # so this should be rare-ish
     def we_should_pull_our_orders(self, fair_values) -> bool:
+        orders = self.get_orders()
+        for ticker in self.config_.tickers:
+            for order in orders[ticker]:
+                if fair_values[ticker].distance_outside_sdevs(order.price, 2) >= self.config_.close_position_if_this_far_outside:
+                    return True
         return False
 
-    # not an "urgent" method. I.E. will send a bunch of cancels at a rate that we 
-    # know we won't get limited at
-    async def close_stale_positions(self, fair_values) -> None:
-        pass
+    async def place_limit_by_fair_value(self, fair_value, ticker, quantity, sdevs):
+        lower_bound = fair_value.price - sdevs * fair_value.sdev
+        upper_bound = fair_value.price + sdevs * fair_value.sdev
 
-    async def refresh_levels(self) -> None:
-        """
-        Based on the computed fair values, refresh all of our levels
-        """
+        asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume=quantity, price=lower_bound, is_bid = True))
+        asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume=quantity, price=upper_bound, is_bid = False))
+
+    async def place_junk_orders(self):
+        print(f'placing junk orders')
+        await self._quoter.remove_all()
         fair_values = self.pricing_engine_.fair_values()
-
-        if(self.we_should_pull_our_orders(fair_values=fair_values)):
-            pass
-
-        # TODO: what's the API endpoint to remove a specific order?
-        should_update_levels = (datetime.now() - self.last_time_we_traded_) > self.config_.rate_limit
-
-        if not should_update_levels:
-            return
-
-        print(f'time since we last traded: {datetime.now() - self.last_time_we_traded_}')
-        self.last_time_we_traded = datetime.now()
-        self.last_quoted_at_ = fair_values
-
         for ticker in self.config_.tickers:
-            asyncio.create_task(self.close_stale_positions(ticker=ticker, fair_values=fair_values))
+            asyncio.create_task(self.place_limit_by_fair_value(fair_value=fair_values[ticker], ticker=ticker, quantity=1, sdevs = 10))
+            asyncio.create_task(self.place_limit_by_fair_value(fair_value=fair_values[ticker], ticker=ticker, quantity=1, sdevs = 20))
 
-            sdev = np.sqrt(fair_values[ticker].variance)
-            assert sdev
-            lower_bound = fair_values[ticker].price - 2 * sdev
-            upper_bound = fair_values[ticker].price + 2 * sdev
+    async def do_every(self, td: timedelta, fn) -> None:
+        print("do every body")
+        while True:
+            await fn()
+            await asyncio.sleep(td / timedelta(seconds=1))
 
-            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume= 50, price=lower_bound, is_bid = True))
-            asyncio.create_task(self._quoter.place_limit(ticker=ticker, volume= 50, price=upper_bound, is_bid = False))
+    async def periodic_jobs(self) -> None:
+        print("do periodic jobs")
 
+        place_junk_orders = asyncio.create_task(self.do_every(timedelta(seconds=10), self.place_junk_orders))
 
+        await asyncio.gather(place_junk_orders)
 
     async def on_orderbook_update(self) -> None:
-        print("Orderbook update", datetime.now())
+        # print("Orderbook update", datetime.now())
         self.pricing_engine_.on_tick()
-        asyncio.create_task(self.refresh_levels())
 
     async def on_portfolio_update(self) -> None:
         print(f'Portfolio update. New PNL: {self.get_pnl()}')

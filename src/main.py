@@ -14,7 +14,7 @@ from config import Config
 
 
 RATE_LIMIT = 15
-API_KEY = "VUEFDIYRNIGPFYVD"
+API_KEY = "OOHMIJNZHTRUDHQR"
 USERNAME = "team20"
 URI = 'ec2-3-16-107-184.us-east-2.compute.amazonaws.com'
 URL = f"http://{URI}:8080"
@@ -36,13 +36,14 @@ async def start_strategy() -> None:
     shared_state = client.shared_state
     prioritizer = Prioritizer(rate_limit=RATE_LIMIT, trading_client=client)
 
-    data = pd.read_csv("mock_train_data.csv").rename(columns={"Stock" + ticker + "_Price" : ticker for ticker in Config.tickers})
+    data = pd.read_csv("train_data.csv").rename(columns={"Stock" + ticker + "_Price" : ticker for ticker in Config.tickers})
 
     strategy: Strategy = NaiveStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
 
     client.set_strategy(strategy=strategy)
 
     await strategy.start()
+    asyncio.create_task(strategy.periodic_jobs())
 
     await asyncio.sleep(1000000)
 

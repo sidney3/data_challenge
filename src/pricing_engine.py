@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import numpy as np
 
 from gt_trading_client import SharedState
 
@@ -11,6 +12,29 @@ from dataclasses import dataclass
 class FairValue:
     price: float
     variance: float
+
+    @property
+    def sdev(self) -> float:
+        return np.sqrt(self.variance)
+
+    def distance_outside_sdevs(self, target_price: float, sdevs: float):
+        """
+        Return the amount that target_price is outside the target range by.
+
+        e.x. if the fair value is 0 and 1 sdev is $3, this would give the distance
+        outside of the interval (-3, 3) that we are in
+        """
+        sdev = np.sqrt(self.variance)
+        lo = self.price - (sdev * sdevs)
+        hi = self.price - (sdev + sdevs)
+
+        if target_price < lo:
+            return lo - target_price
+        elif target_price >= lo and target_price <= hi:
+            return 0
+        else:
+            return target_price - hi
+
 
 class PricingEngine:
     config_: Config
@@ -39,8 +63,6 @@ class PricingEngine:
         self.symbol_variances_ = (smoothing * abs(new_prices - self.symbol_estimates_)) + (1 - smoothing) * self.symbol_variances_
         self.symbol_estimates_ = (smoothing * new_prices) + (1 - smoothing) * self.symbol_estimates_
 
-        assert all(self.symbol_estimates_)
-        assert all(self.symbol_variances_)
 
     def __init__(self, shared_state: SharedState, historical_data: pd.DataFrame, config: Config):
         """
