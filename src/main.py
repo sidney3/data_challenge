@@ -9,7 +9,7 @@ from gt_trading_client import Prioritizer
 from gt_trading_client import TradingClient
 from gt_trading_client import Strategy
 from test_strategy import TestStrategy
-from naive_strategy import NaiveStrategy
+from monetization_strategy import MonetizationStrategy
 from config import Config
 
 
@@ -38,12 +38,11 @@ async def start_strategy() -> None:
 
     data = pd.read_csv("train_data.csv").rename(columns={"Stock" + ticker + "_Price" : ticker for ticker in Config.tickers})
 
-    strategy: Strategy = NaiveStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
+    strategy: Strategy = MonetizationStrategy(quoter=prioritizer, shared_state=shared_state, config=Config(), historical_data=data)
 
     client.set_strategy(strategy=strategy)
 
     await strategy.start()
-    asyncio.create_task(strategy.periodic_jobs())
 
     await asyncio.sleep(1000000)
 

@@ -18,4 +18,13 @@ class Config:
     # posted range, pull all of our orders.
     close_position_if_this_far_outside: float = 3
 
+    # if we find a mispricing of at least this, we enter a 
+    # position
+    enter_position_limit:float =5 
+
+    # threshold of a VERY profitable event
+    kick_out_prior_position_limit:float = 40
+
     rate_limit = timedelta(seconds=2)
+
+    position_limit:int = 1
