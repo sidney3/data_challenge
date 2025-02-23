@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import aiohttp
@@ -18,7 +19,6 @@ from typing import Any
 import nest_asyncio
 import websockets
 from sortedcontainers import SortedDict
-
 
 
 class OrderSide(str, Enum):
@@ -109,6 +109,7 @@ class RemoveAll(PlacableOrder):
             "type": "remove_all",
         }
         return form_data
+        
         
 class UserPortfolio:
     """
@@ -234,8 +235,9 @@ class UserPortfolio:
 
         """
         return self._pnl
-        
-        
+
+
+
 class OrderBook:
     """
     OrderBook class for representing orders in orderbook.
@@ -473,6 +475,7 @@ class OrderBook:
             for price, volume in data["asks"].items():
                 output.append(f"    {price:.2f}: {volume:.2f}")
         return "\n".join(output)
+
 
 
 class FilteredOrderBook(OrderBook):
@@ -721,8 +724,9 @@ class Strategy(ABC):
     @abstractmethod
     async def on_portfolio_update(self) -> None:
         pass
-
-
+        
+        
+        
 class WebSocketClient:
     """
     WebSocketClient to connect to websocket and receive live stream of market data.
@@ -914,8 +918,8 @@ class WebSocketClient:
             await self._ws.close()
             self._ws = None
         self._subscribed = None
-        
-        
+
+
 class TradingClient:
     """
     Trading Client Class.
@@ -1036,8 +1040,8 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
-            "price": price,
+            "volume": int(volume),
+            "price": int(price),
             "isBid": is_bid,
         }
         return (url, form_data)
@@ -1076,6 +1080,7 @@ class TradingClient:
                     self._user_portfolio.add_position(
                         ticker=ticker,
                         position_delta=volume_filled if is_bid else -volume_filled,
+                        price=price,
                     )
                 if volume_remaining > 0:
                     self._user_portfolio.add_order(
@@ -1106,7 +1111,7 @@ class TradingClient:
             "username": self._username,
             "sessionToken": self._session_token,
             "ticker": ticker,
-            "volume": volume,
+            "volume": int(volume),
             "isBid": is_bid,
         }
         return (url, form_data)
@@ -1196,8 +1201,8 @@ class TradingClient:
 
         """
         await self._client.unsubscribe()
-        
-        
+
+
 class Prioritizer:
     """
     Prioritizer class to execute actions, while being mindful of exchange rate limits.
@@ -1287,4 +1292,7 @@ class Prioritizer:
             return
         self._rate_limit_window.append(time.time())
         await self._trading_client.remove_all()
+
+
+
 
